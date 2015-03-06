@@ -457,6 +457,11 @@ define(["dcl/dcl",
 					this.swipeToDismiss.enable();
 				}
 			}
+            if (this.isExpirable()) {
+                this.on("pointerover", this._pointerOverHandler.bind(this));
+                this.on("pointerleave", this._pointerLeaveHandler.bind(this));
+                this.on("pointercancel", this._pointerLeaveHandler.bind(this));
+            }
 		},
 		_hideInDom: function (toaster, animated, customAnimation) {
 			var animation = customAnimation || toaster.animationQuitClass;
@@ -500,7 +505,20 @@ define(["dcl/dcl",
 					this.dismiss();
 				}.bind(this), this._dismissButton);
 			}
-		}
+		},
+        _hovering: false,
+        _pointerOverHandler: function () {
+            if (!this._hovering) {
+                this._hovering = true;
+                this._timer.pause();
+            }
+        },
+        _pointerLeaveHandler: function () {
+            if (this._hovering) {
+                this._hovering = false;
+                this._timer.resume();
+            }
+        }
 	});
 	return register("d-toaster-message", [HTMLElement, ToasterMessage]);
 });
