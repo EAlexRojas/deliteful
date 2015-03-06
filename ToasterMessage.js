@@ -403,6 +403,7 @@ define(["dcl/dcl",
 		},
 
 		_timer: null,
+        _eventHandlers: [],
 
 		_insertInDom: function (toaster, animated) {
 			var wrapper = toaster._wrapper;
@@ -458,9 +459,9 @@ define(["dcl/dcl",
 				}
 			}
             if (this.isExpirable()) {
-                this.on("pointerover", this._pointerOverHandler.bind(this));
-                this.on("pointerleave", this._pointerLeaveHandler.bind(this));
-                this.on("pointercancel", this._pointerLeaveHandler.bind(this));
+                this._eventHandlers.push(this.on("pointerover", this._pointerOverHandler.bind(this)));
+                this._eventHandlers.push(this.on("pointerleave", this._pointerLeaveHandler.bind(this)));
+                this._eventHandlers.push(this.on("pointercancel", this._pointerLeaveHandler.bind(this)));
             }
 		},
 		_hideInDom: function (toaster, animated, customAnimation) {
@@ -488,6 +489,11 @@ define(["dcl/dcl",
 			$(this).addClass(animated ? toaster.animationEndClass : D_HIDDEN);
 			toaster._wrapper.removeChild(this);
 			this._isRemoved = true;
+            if (this.isExpirable()) {
+                while (this._eventHandlers.length) {
+                    this._eventHandlers.pop().remove();
+                }
+            }
 		},
 		template: template,
 		postRender: function () {
