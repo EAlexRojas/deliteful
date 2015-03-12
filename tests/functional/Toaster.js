@@ -236,40 +236,34 @@ define(["intern",
 				.end();
 
 		},
-		// TODO: this test case doesn't pass due to a dpointer issue which has been reported here
-		// https://github.com/ibm-js/dpointer/issues/23
-//		"Check message dismissal": function () {
-//			var remote = this.remote;
-//			return remote
-//				.get(require.toUrl(PAGE))
-//				.waitForCondition("'ready' in window && ready", intern.config.WAIT_TIMEOUT)
-//				/*jshint -W061 */
-//				.eval("actionsDismiss")
-//				.then(function (actions) {
-//					var action = actions.permanent;
-//					return remote
-//
-//						// click on show button
-//						.findById(action.buttonId)
-//						.click()
-//						.end()
-//
-//						// wait for the message to show up
-//						.waitForCondition(codeIns(action), intern.config.WAIT_TIMEOUT)
-//
-//						// click on the dismiss button
-//						.findById(action.props.id)
-//						.elementByClassName("d-toaster-dismiss")
-//						.click()
-//						// wait for the message to be removed and check it's not there
-//						.waitForCondition(codeRem(action), intern.config.WAIT_TIMEOUT)
-//						.then(function () {
-//							return checkHasNotElement(remote, action.props.id);
-//						})
-//						.end();
-//				})
-//				.end();
-//		},
+		"Check message dismissal": function () {
+            this.timeout = intern.config.TEST_TIMEOUT;
+			var remote = this.remote;
+			return remote
+				/*jshint -W061 */
+				.execute("return actionsDismiss;") // NOTE: a global variable existing in PAGE
+				.then(function (actions) {
+					var action = actions.permanent;
+					return remote
+						// click on show button
+						.findById(action.buttonId)
+						.click()
+						.end()
+						// wait for the message to show up
+						.then(pollUntil(codeIns(action), [], intern.config.WAIT_TIMEOUT, intern.config.POLL_INTERVAL))
+						// click on the dismiss button
+						.findById(action.props.id)
+						.findByClassName("d-toaster-dismiss")
+						.click()
+						// wait for the message to be removed and check it's not there
+						.then(pollUntil(codeRem(action), [], intern.config.WAIT_TIMEOUT, intern.config.POLL_INTERVAL))
+						.then(function () {
+							return checkHasNotElement(remote, action.props.id);
+						})
+						.end();
+				})
+				.end();
+		},
 		"Check message duration": function () {
 			this.timeout = intern.config.TEST_TIMEOUT;
 			var remote = this.remote;
