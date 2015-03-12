@@ -327,7 +327,7 @@ define(["intern",
                 /*jshint -W061 */
                 .execute("return actionsHover;") // NOTE: a global variable existing in PAGE
                 .then(function (actions) {
-                    var action = actions["expirable3000"];
+                    var action = actions.expirable3000;
                     return remote
                         // click on show button
                         .findById(action.buttonId)
@@ -346,7 +346,7 @@ define(["intern",
                         .sleep(5000)
                         // Verify the message still exists
                         .then(function () {
-                            return checkHasElement(remote, action.props.id)
+                            return checkHasElement(remote, action.props.id);
                         })
                         // move pointer out of message
                         .findById(action.buttonId)
@@ -364,6 +364,7 @@ define(["intern",
                         .then(function () {
                             return checkHasNotElement(remote, action.props.id);
                         })
+                        .end();
                 })
                 .end();
         }
