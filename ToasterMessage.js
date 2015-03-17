@@ -403,7 +403,6 @@ define(["dcl/dcl",
 		},
 
 		_timer: null,
-        _eventHandlers: [],
 
 		_insertInDom: function (toaster, animated) {
 			var wrapper = toaster._wrapper;
@@ -458,11 +457,11 @@ define(["dcl/dcl",
 					this.swipeToDismiss.enable();
 				}
 			}
-            if (this.isExpirable()) {
-                this._eventHandlers.push(this.on("pointerover", this._pointerOverHandler.bind(this)));
-                this._eventHandlers.push(this.on("pointerleave", this._pointerLeaveHandler.bind(this)));
-                this._eventHandlers.push(this.on("pointercancel", this._pointerLeaveHandler.bind(this)));
-            }
+			if (this.isExpirable()) {
+				this._eventHandlers = [this.on("pointerover", this._pointerOverHandler.bind(this)),
+							this.on("pointerleave", this._pointerLeaveHandler.bind(this)),
+							this.on("pointercancel", this._pointerLeaveHandler.bind(this))];
+			}
 		},
 		_hideInDom: function (toaster, animated, customAnimation) {
 			var animation = customAnimation || toaster.animationQuitClass;
@@ -489,11 +488,12 @@ define(["dcl/dcl",
 			$(this).addClass(animated ? toaster.animationEndClass : D_HIDDEN);
 			toaster._wrapper.removeChild(this);
 			this._isRemoved = true;
-            if (this.isExpirable()) {
-                while (this._eventHandlers.length) {
-                    this._eventHandlers.pop().remove();
-                }
-            }
+			if (this.isExpirable()) {
+				while (this._eventHandlers.length) {
+					this._eventHandlers.pop().remove();
+				}
+				this._eventHandlers = null;
+			}
 		},
 		template: template,
 		postRender: function () {
@@ -512,19 +512,19 @@ define(["dcl/dcl",
 				}.bind(this), this._dismissButton);
 			}
 		},
-        _hovering: false,
-        _pointerOverHandler: function () {
-            if (!this._hovering) {
-                this._hovering = true;
-                this._timer.pause();
-            }
-        },
-        _pointerLeaveHandler: function () {
-            if (this._hovering) {
-                this._hovering = false;
-                this._timer.resume();
-            }
-        }
+		_hovering: false,
+		_pointerOverHandler: function () {
+			if (!this._hovering) {
+				this._hovering = true;
+				this._timer.pause();
+			}
+		},
+		_pointerLeaveHandler: function () {
+			if (this._hovering) {
+				this._hovering = false;
+				this._timer.resume();
+			}
+		}
 	});
 	return register("d-toaster-message", [HTMLElement, ToasterMessage]);
 });
