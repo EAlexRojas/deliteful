@@ -221,6 +221,44 @@ define(["dcl/dcl",
 		}.bind(this));
 	};
 
+	var PauseTimerOnHover = function (element) {
+
+		var hovering = false;
+		function _pointerOverHandler() {
+			console.log("hover event");
+			if (!hovering) {
+				hovering = true;
+				element._timer.pause();
+			}
+		}
+
+		function _pointerLeaveHandler() {
+			if (hovering) {
+				hovering = false;
+				element._timer.resume();
+			}
+		}
+
+		this.isEnabled = false;
+		var eventHandlers;
+		this.enable = function () {
+			this.isEnabled = true;
+			eventHandlers = [element.on("pointerover", _pointerOverHandler.bind(element)),
+				element.on("pointerleave", _pointerLeaveHandler.bind(element)),
+				element.on("pointercancel", _pointerLeaveHandler.bind(element))];
+		};
+
+		this.disable = function () {
+			if (this.isEnabled) {
+				this.isEnabled = false;
+				eventHandlers.forEach(function (eventHandler) {
+					eventHandler.remove();
+				});
+				eventHandlers = null;
+			}
+		};
+	};
+
 	var D_INVISIBLE = "d-invisible",
 		D_HIDDEN = "d-hidden",
 		D_SWIPEOUT = "d-toaster-swipeout";
@@ -403,7 +441,6 @@ define(["dcl/dcl",
 		},
 
 		_timer: null,
-        _eventHandlers: [],
 
 		_insertInDom: function (toaster, animated) {
 			var wrapper = toaster._wrapper;
@@ -458,11 +495,10 @@ define(["dcl/dcl",
 					this.swipeToDismiss.enable();
 				}
 			}
-            if (this.isExpirable()) {
-                this._eventHandlers.push(this.on("pointerover", this._pointerOverHandler.bind(this)));
-                this._eventHandlers.push(this.on("pointerleave", this._pointerLeaveHandler.bind(this)));
-                this._eventHandlers.push(this.on("pointercancel", this._pointerLeaveHandler.bind(this)));
-            }
+			// setting up pause-timer-on-hover
+			if (this.isExpirable()) {
+				this.pauseTimerOnHover.enable();
+			}
 		},
 		_hideInDom: function (toaster, animated, customAnimation) {
 			var animation = customAnimation || toaster.animationQuitClass;
@@ -483,17 +519,15 @@ define(["dcl/dcl",
 					toaster.notifyCurrentValue("messages"); // TODO: could be better handled with an event
 				}
 			}
+			if (this.isExpirable()) {
+				this.pauseTimerOnHover.disable();
+			}
 		},
 		_removeFromDom: function (toaster, animated) {
 			$(this).removeClass(toaster.animationQuitClass);
 			$(this).addClass(animated ? toaster.animationEndClass : D_HIDDEN);
 			toaster._wrapper.removeChild(this);
 			this._isRemoved = true;
-            if (this.isExpirable()) {
-                while (this._eventHandlers.length) {
-                    this._eventHandlers.pop().remove();
-                }
-            }
 		},
 		template: template,
 		postRender: function () {
@@ -511,20 +545,9 @@ define(["dcl/dcl",
 					this.dismiss();
 				}.bind(this), this._dismissButton);
 			}
-		},
-        _hovering: false,
-        _pointerOverHandler: function () {
-            if (!this._hovering) {
-                this._hovering = true;
-                this._timer.pause();
-            }
-        },
-        _pointerLeaveHandler: function () {
-            if (this._hovering) {
-                this._hovering = false;
-                this._timer.resume();
-            }
-        }
+			// setting up pause timer on hover listener
+			this.pauseTimerOnHover = new PauseTimerOnHover(this);
+		}
 	});
 	return register("d-toaster-message", [HTMLElement, ToasterMessage]);
 });
