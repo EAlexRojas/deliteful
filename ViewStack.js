@@ -179,14 +179,10 @@ define(["dcl/dcl",
 			 */
 			showPrevious: function (params) {
 				//		Shows the previous child in the container.
-				if (!params) {
-					params = {reverse : true};
-				} else {
-					if (params.reverse === undefined) {
-						params.reverse = true;
-					}
-				}
-				return this._showPreviousNext("previousElementSibling", params);
+				var args = {reverse: true};
+				params = params || {};
+				dcl.mix(args, params);
+				return this._showPreviousNext("previousElementSibling", args);
 			},
 
 			_showPreviousNext: function (direction, props) {
