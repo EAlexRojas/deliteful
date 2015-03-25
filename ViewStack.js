@@ -180,8 +180,7 @@ define(["dcl/dcl",
 			showPrevious: function (params) {
 				//		Shows the previous child in the container.
 				var args = {reverse: true};
-				params = params || {};
-				dcl.mix(args, params);
+				dcl.mix(args, params || {});
 				return this._showPreviousNext("previousElementSibling", args);
 			},
 
