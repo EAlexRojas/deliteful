@@ -1,0 +1,25 @@
+@import "../../../../delite/themes/bootstrap/includes";
+.d-panel {
+  display: block;
+  .box-sizing(border-box);
+  background-color: @panel-bg;
+  border: 1px solid;
+  border-color: @panel-default-border;
+  .border-radius(@panel-border-radius);
+  .box-shadow(0 1px 1px rgba(0,0,0,.05));
+}
+
+.-d-panel-header {
+  padding: 10px 15px;
+  font-weight: bold;
+  border-bottom: 1px solid;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border-color: @panel-inner-border;
+  color: @panel-default-text;
+  background-color: @panel-default-heading-bg;
+}
+
+.-d-panel-content {
+  //padding: @panel-body-padding;
+}
