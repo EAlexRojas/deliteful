@@ -14,25 +14,43 @@
 			});
 		</script>
 		<script>
-			require(["delite/register",
-				"deliteful/Accordion",
-				"delite/theme!delite/themes/{{theme}}/global.css",	// page level CSS
-				"requirejs-domready/domReady!"
-			], function (register) {
-				register.parse();
+			var ready = false;
+			require([
+				"deliteful/Store",
+				"delite/theme!delite/themes/{{theme}}/global.css"	// page level CSS
+			], function () {
+				require(["delite/register",
+					"deliteful/Accordion",
+					"deliteful/list/List",
+					"requirejs-domready/domReady!"
+				], function (register) {
+					register.parse();
+					ready = true;
+				});
 			});
 		</script>
 	</head>
 	<body>
-		<d-accordion id="accordion" selectedChildId="second">
-			<div title="First Header" id="first">
-				<header>Header?</header>
-				First Content
-			</div>
-			<div title="Second Header" id="second">
+		<d-store id="store">
+			{"label": "list item 0", "righttext": "right text A"},
+			{"label": "list item 1", "righttext": "right text B"},
+			{"label": "list item 2", "righttext": "right text C"},
+			{"label": "list item 3", "righttext": "right text D"},
+			{"label": "list item 4", "righttext": "right text E"},
+			{"label": "list item 5", "righttext": "right text F"},
+			{"label": "list item 6", "righttext": "right text G"},
+			{"label": "list item 7", "righttext": "right text H"},
+			{"label": "list item 8", "righttext": "right text I"},
+			{"label": "list item 9", "righttext": "right text J"}
+		</d-store>
+		<d-accordion id="accordion" selectedChildId="first" singleOpen="true">
+			<div label="Second Header" id="second">
 				Second Content
 			</div>
-			<div title="Third Header" id="third">
+			<d-panel label="First Header" id="first">
+				First Content
+			</d-panel>
+			<div label="Third Header" id="third">
 				Third content
 				<ui>
 					<li>One</li>
@@ -40,6 +58,8 @@
 					<li>...</li>
 				</ui>
 			</div>
+			<d-list id="list" style="height: 200px" selectionMode="multiple" store="store">
+			</d-list>
 		</d-accordion>
 	</body>
 </html>
