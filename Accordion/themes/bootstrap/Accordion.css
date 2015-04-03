@@ -5,6 +5,7 @@
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   position: relative;
+  overflow: auto;
 }
 .d-accordion > .d-panel {
   -moz-border-radius: 0;
