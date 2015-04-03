@@ -30,6 +30,11 @@
   background-color: @panel-default-heading-bg;
 }
 
+.d-accordion > .d-panel > .d-toggle-button:hover {
+  background-color: darken(@panel-default-heading-bg, 8%);
+  border-color: darken(@panel-inner-border, 12%);
+}
+
 .d-accordion > .d-panel > .d-toggle-button.d-checked {
   background-color: @component-active-bg;
   color: @component-active-color;
