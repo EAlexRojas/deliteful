@@ -38,8 +38,8 @@ define(["dcl/dcl",
 			return children;
 		},
 
-		_setSelectedChildIdAttr: function (child) {
-			var childNode = this.ownerDocument.getElementById(child);
+		_setSelectedChildIdAttr: function (childId) {
+			var childNode = this.ownerDocument.getElementById(childId);
 			if (childNode) {
 				var node;
 				if (childNode.baseClass === "d-panel") {
@@ -53,7 +53,7 @@ define(["dcl/dcl",
 				} else {
 					this._pendingChild = node;
 				}
-				this._set("selectedChildId", child);
+				this._set("selectedChildId", childId);
 			}
 		},
 
@@ -65,9 +65,26 @@ define(["dcl/dcl",
 			}
 		},
 
+		_setIcon1Attr: function (icon1) {
+			for (var i = 0, l = this.children.length; i < l; i++) {
+				if (!this.children[i].headerNode.iconClass){
+					this.children[i].headerNode.iconClass = icon1;
+				}
+			}
+			this._set("icon1", icon1);
+		},
+
+		_setIcon2Attr: function (icon2) {
+			for (var i = 0, l = this.children.length; i < l; i++) {
+				if (!this.children[i].headerNode.checkedIconClass){
+					this.children[i].headerNode.checkedIconClass = icon2;
+				}
+			}
+			this._set("icon2", icon2);
+		},
+
 		_setChildrenInitialVisibility: function () {
-			var children = this.getChildren();
-			children.forEach(function (child) {
+			this.getChildren().forEach(function (child) {
 				setVisibility(child, this.singleOpen ? child === this._selectedChild : false);
 			}, this);
 		},
@@ -87,8 +104,7 @@ define(["dcl/dcl",
 
 		preRender: function () {
 			for (var i = 0, l = this.children.length; i < l; i++) {
-				var panel = this._setupChild(this.children[i]);
-				this.replaceChild(panel, this.children[i]);
+				this._setupChild(this.children[i]);
 			}
 		},
 
@@ -109,25 +125,19 @@ define(["dcl/dcl",
 		},
 
 		_setupChild: function (child) {
-			var panel = child;
-			if (panel.baseClass !== "d-panel") {
-				panel = new Panel({
-					label: child.getAttribute("label") || "Default header",
-					icon: this.icon1
-				});
-				panel.containerNode.appendChild(child.cloneNode(true));
+			if (child.baseClass !== "d-panel") {
+				this.removeChild(child); //Remove child if not a d-panel ?
+				return;
 			}
 			var toggle = new ToggleButton({
-				label: panel.headerNode.textContent,
-				iconClass: this.icon1,
-				checkedIconClass: this.icon2
+				label: child.headerNode.textContent,
+				iconClass: child.icon1,
+				checkedIconClass: child.icon2
 			});
-			toggle.placeAt(panel.headerNode, "replace");
+			toggle.placeAt(child.headerNode, "replace");
 			toggle.on("click", this._changeHandler.bind(this));
-			panel.headerNode = toggle;
-			panel.icon2 = this.icon2;
-			panel.parent = this;
-			return panel;
+			child.headerNode = toggle;
+			return child;
 		},
 
 		changeDisplay: function (widget, params) {
