@@ -33,7 +33,7 @@ define(["dcl/dcl",
 		getChildren: function () {
 			var children = [];
 			for (var i = 0, l = this.children.length; i < l; i++) {
-				children[i] = this.children[i].baseClass === "d-panel" ? this.children[i].children[1] : this.children[i];
+				children[i] =  this.children[i].containerNode;
 			}
 			return children;
 		},
@@ -43,34 +43,37 @@ define(["dcl/dcl",
 			if (childNode) {
 				var node;
 				if (childNode.baseClass === "d-panel") {
-					childNode.headerNode.checked = true;
 					node = childNode.containerNode;
 				} else {
-					childNode.parentNode.parentNode.headerNode.checked = true;
 					node = childNode.parentNode;
 				}
+				node.parentNode.headerNode.checked = true;
 				if (this.attached) {
 					this.show(node);
 				} else {
 					this._pendingChild = node;
 				}
+				this._set("selectedChildId", child);
 			}
 		},
 
-		_setChildrenVisibility: function () {
+		_getSelectedChildIdAttr: function () {
+			if (this.singleOpen) {
+				return this._selectedChild ? this._selectedChild.id : "";
+			} else {
+				return this.selectedChildId;
+			}
+		},
+
+		_setChildrenInitialVisibility: function () {
 			var children = this.getChildren();
-			//if (this.singleOpen) {
-			//	if (!this._selectedChild && children.length > 0) {
-			//		this._selectedChild = children[0];
-			//	}
-			//}
 			children.forEach(function (child) {
 				setVisibility(child, this.singleOpen ? child === this._selectedChild : false);
 			}, this);
 		},
 
 		attachedCallback: function () {
-			this._setChildrenVisibility();
+			this._setChildrenInitialVisibility();
 			//var noTransition = {transition: "none"};
 			var children = this.getChildren();
 			if (this._pendingChild) {
@@ -78,7 +81,7 @@ define(["dcl/dcl",
 				this._pendingChild = null;
 			} else if (this.singleOpen && children.length > 0) {
 				children[0].parentNode.headerNode.checked = true;
-				this.show(children[0]/*, noTransition*/);
+				this.show(children[0]);
 			}
 		},
 
@@ -90,13 +93,17 @@ define(["dcl/dcl",
 		},
 
 		_changeHandler: function(event) {
+			var panel = event.target.parentNode;
+			if (panel.baseClass !== "d-panel") {
+				panel = panel.parentNode;
+			}
 			if (this.singleOpen) {
-				this.show(event.target.parentNode.containerNode);
+				this.show(panel.containerNode);
 			} else {
-				if(event.target.checked) {
-					this.hide(event.target.parentNode.containerNode);
+				if(panel.containerNode.style.visibility === "visible") {
+					this.hide(panel.containerNode);
 				} else {
-					this.show(event.target.parentNode.containerNode);
+					this.show(panel.containerNode);
 				}
 			}
 		},
@@ -111,13 +118,14 @@ define(["dcl/dcl",
 				panel.containerNode.appendChild(child.cloneNode(true));
 			}
 			var toggle = new ToggleButton({
-				label: panel.headerNode.textContent
+				label: panel.headerNode.textContent,
+				iconClass: this.icon1,
+				checkedIconClass: this.icon2
 			});
 			toggle.placeAt(panel.headerNode, "replace");
+			toggle.on("click", this._changeHandler.bind(this));
 			panel.headerNode = toggle;
-			panel.headerNode.on("pointerup", this._changeHandler.bind(this));
 			panel.icon2 = this.icon2;
-			panel.isCollapsible = true;
 			panel.parent = this;
 			return panel;
 		},
@@ -135,7 +143,7 @@ define(["dcl/dcl",
 						setVisibility(origin, false);
 						origin.parentNode.headerNode.checked = false;
 					} else {
-						origin.parentNode.headerNode.checked = false;
+						origin.parentNode.headerNode.checked = true;
 					}
 				}
 				setVisibility(widget, true);
@@ -145,7 +153,7 @@ define(["dcl/dcl",
 
 		show: dcl.superCall(function (sup) {
 			return function (dest, params) {
-				if (!this._selectedChild && this.children.length > 0) {
+				if (this.singleOpen && !this._selectedChild && this.children.length > 0) {
 					// The default visible child is the first one.
 					this._selectedChild = this.getChildren()[0];
 				}
