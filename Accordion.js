@@ -24,7 +24,6 @@ define(["dcl/dcl",
 
 		baseClass: "d-accordion",
 		nls: messages,
-		selectedChildId : "",
 		icon1 : "",
 		icon2 : "",
 		singleOpen: true,
@@ -36,33 +35,6 @@ define(["dcl/dcl",
 				children[i] =  this.children[i].containerNode;
 			}
 			return children;
-		},
-
-		_setSelectedChildIdAttr: function (childId) {
-			var childNode = this.ownerDocument.getElementById(childId);
-			if (childNode) {
-				var node;
-				if (childNode.baseClass === "d-panel") {
-					node = childNode.containerNode;
-				} else {
-					node = childNode.parentNode;
-				}
-				node.parentNode.headerNode.checked = true;
-				if (this.attached) {
-					this.show(node);
-				} else {
-					this._pendingChild = node;
-				}
-				this._set("selectedChildId", childId);
-			}
-		},
-
-		_getSelectedChildIdAttr: function () {
-			if (this.singleOpen) {
-				return this._selectedChild ? this._selectedChild.id : "";
-			} else {
-				return this.selectedChildId;
-			}
 		},
 
 		_setIcon1Attr: function (icon1) {
@@ -85,21 +57,17 @@ define(["dcl/dcl",
 
 		_setChildrenInitialVisibility: function () {
 			this.getChildren().forEach(function (child) {
-				setVisibility(child, this.singleOpen ? child === this._selectedChild : false);
+				var toShow = this.singleOpen ? child === this._selectedChild : child.parentNode.open;
+				if (toShow) {
+					this.show(child);
+				} else {
+					this.hide(child);
+				}
 			}, this);
 		},
 
 		attachedCallback: function () {
 			this._setChildrenInitialVisibility();
-			//var noTransition = {transition: "none"};
-			var children = this.getChildren();
-			if (this._pendingChild) {
-				this.show(this._pendingChild/*, noTransition*/);
-				this._pendingChild = null;
-			} else if (this.singleOpen && children.length > 0) {
-				children[0].parentNode.headerNode.checked = true;
-				this.show(children[0]);
-			}
 		},
 
 		preRender: function () {
@@ -116,7 +84,7 @@ define(["dcl/dcl",
 			if (this.singleOpen) {
 				this.show(panel.containerNode);
 			} else {
-				if(panel.containerNode.style.visibility === "visible") {
+				if(panel.open) {
 					this.hide(panel.containerNode);
 				} else {
 					this.show(panel.containerNode);
@@ -132,18 +100,24 @@ define(["dcl/dcl",
 			var toggle = new ToggleButton({
 				label: child.headerNode.textContent,
 				iconClass: child.icon1,
-				checkedIconClass: child.icon2
+				checkedIconClass: child.icon2,
+				checked: child.open
 			});
 			toggle.placeAt(child.headerNode, "replace");
 			toggle.on("click", this._changeHandler.bind(this));
 			child.headerNode = toggle;
-			return child;
+			//This only makes sense if singleOption, but at this stage members have not been initialized yet
+			if (child.open) {
+				this._selectedChild = child.containerNode;
+			}
 		},
 
 		changeDisplay: function (widget, params) {
 			if (params.hide === true) {
 				setVisibility(widget, false);
+				widget.parentNode.headerNode.checked = false;
 				//transition
+				widget.parentNode.open = false;
 				return Promise.resolve();
 			} else {
 				if (this.singleOpen) {
@@ -151,12 +125,14 @@ define(["dcl/dcl",
 					this._selectedChild = widget;
 					if (origin !== widget) {
 						setVisibility(origin, false);
+						origin.parentNode.open = false;
 						origin.parentNode.headerNode.checked = false;
 					} else {
 						origin.parentNode.headerNode.checked = true;
 					}
 				}
 				setVisibility(widget, true);
+				widget.parentNode.open = true;
 				return Promise.resolve();
 			}
 		},

@@ -10,6 +10,7 @@ define(["dcl/dcl",
 		label: "",
 		icon1: "",
 		icon2: "", //When used inside an accordion
+		open: false, //When used inside an accordion
 		template: template
 	});
 
