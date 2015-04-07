@@ -29,6 +29,11 @@
 			});
 		});
 	</script>
+	<style>
+		.icon-plus:before {
+			content: "\25b6";
+		}
+	</style>
 </head>
 	<body>
 		<d-store id="store">
@@ -43,7 +48,7 @@
 			{"label": "list item 8", "righttext": "right text I"},
 			{"label": "list item 9", "righttext": "right text J"}
 		</d-store>
-		<d-panel id="panel" label="The Title">
+		<d-panel id="panel" label="The Title" icon1="icon-plus">
 			<d-list id="list" style="height: 200px" selectionMode="multiple" store="store">
 			</d-list>
 		</d-panel>
