@@ -1,4 +1,7 @@
 <template>
-	<div class="-d-panel-header" attach-point="headerNode">{{label}}</div>
+	<div class="-d-panel-header" attach-point="headerNode">
+		<span attach-point="iconNode" class="d-icon {{(this.icon1 ? this.icon1 : 'd-hidden')}}"></span>
+		<span attach-point="labelNode">{{label}}</span>
+	</div>
 	<div class="-d-panel-content" attach-point="containerNode"></div>
 </template>

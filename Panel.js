@@ -1,11 +1,11 @@
 define(["dcl/dcl",
 	"delite/register",
-	"delite/DisplayContainer",
+	"delite/Container",
 	"delite/handlebars!./Panel/Panel.html",
     "delite/theme!./Panel/themes/{{theme}}/Panel.css"
-], function (dcl, register, DisplayContainer, template) {
+], function (dcl, register, Container, template) {
 
-	var Panel = dcl(DisplayContainer, {
+	var Panel = dcl(Container, {
 		baseClass: "d-panel",
 		label: "",
 		icon: "",
