@@ -1,12 +1,11 @@
 define(["dcl/dcl",
 	"delite/register",
-	"requirejs-dplugins/i18n!./Accordion/nls/messages",
 	"dpointer/events",
 	"delite/DisplayContainer",
 	"./Panel",
 	"./ToggleButton",
 	"delite/theme!./Accordion/themes/{{theme}}/Accordion.css"
-], function (dcl, register, messages, events, DisplayContainer, Panel, ToggleButton) {
+], function (dcl, register, events, DisplayContainer, Panel, ToggleButton) {
 
 	function setVisibility(node, val) {
 		if (node) {
@@ -23,7 +22,6 @@ define(["dcl/dcl",
 	var Accordion = dcl(DisplayContainer, {
 
 		baseClass: "d-accordion",
-		nls: messages,
 		icon1 : "",
 		icon2 : "",
 		singleOpen: true,
@@ -32,7 +30,9 @@ define(["dcl/dcl",
 		getChildren: function () {
 			var children = [];
 			for (var i = 0, l = this.children.length; i < l; i++) {
-				children[i] =  this.children[i].containerNode;
+				if (this.children[i].baseClass === "d-panel") {
+					children.push(this.children[i].containerNode);
+				}
 			}
 			return children;
 		},
@@ -94,7 +94,7 @@ define(["dcl/dcl",
 
 		_setupChild: function (child) {
 			if (child.baseClass !== "d-panel") {
-				this.removeChild(child); //Remove child if not a d-panel ?
+				setVisibility(child, false); //Remove child if not a d-panel ?
 				return;
 			}
 			var toggle = new ToggleButton({
