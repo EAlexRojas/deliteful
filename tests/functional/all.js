@@ -2,15 +2,15 @@
 define([
 	"./StarRating",
 	"./ScrollableContainer",
-	"./list/all",
+	//"./list/all",
 	"./Toaster",
-	"./Select",
+	//"./Select",
 	"./Slider",
 	"./SidePane",
 	"./Checkbox",
 	"./Switch",
 	"./Button",
-	"./Combobox",
+	//"./Combobox",
 	"./SwapView",
 	"./features"
 ]);
