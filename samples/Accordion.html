@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
@@ -13,20 +14,17 @@
 				baseUrl: "../.."
 			});
 		</script>
-		<script>
-			var ready = false;
+
+		<script type="text/javascript">
 			require([
 				"deliteful/Store",
-				"delite/theme!delite/themes/{{theme}}/global.css"	// page level CSS
+				"delite/theme!delite/themes/{{theme}}/global.css",	// page level CSS
+				"delite/register",
+				"deliteful/Accordion",
+				"deliteful/list/List",
+				"requirejs-domready/domReady!"
 			], function () {
-				require(["delite/register",
-					"deliteful/Accordion",
-					"deliteful/list/List",
-					"requirejs-domready/domReady!"
-				], function (register) {
-					register.parse();
-					ready = true;
-				});
+				document.body.style.display = "";
 			});
 		</script>
 		<style>
@@ -44,7 +42,7 @@
 			}
 		</style>
 	</head>
-	<body>
+	<body style="display:none">
 		<d-store id="store">
 			{"label": "list item 0", "righttext": "right text A"},
 			{"label": "list item 1", "righttext": "right text B"},
@@ -58,14 +56,14 @@
 			{"label": "list item 9", "righttext": "right text J"}
 		</d-store>
 		<div id="container" style="width: 200px; height: 400px">
-			<d-accordion id="accordion" singleOpen="true" icon1="icon-plus" icon2="icon-minus">
-				<d-panel label="First Header" id="first" icon1="icon-right" icon2="icon-down" open="true">
+			<d-accordion id="accordion" singleOpen="true" >
+				<d-panel label="First Header" id="first">
 					First Content
 				</d-panel>
 				<d-panel label="Second Header" id="second" open="true">
 					Second Content
 				</d-panel>
-				<d-panel label="Third Header" id="third" open="true">
+				<d-panel label="Third Header" id="third" >
 					Third content
 					<ui>
 						<li>One</li>
@@ -73,6 +71,11 @@
 						<li>...</li>
 					</ui>
 				</d-panel>
+				<div>
+					<p>
+						Arbitrary div
+					</p>
+				</div>
 				<d-panel label="Fourth Header" id="fourth">
 					<p>
 						Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
@@ -83,14 +86,9 @@
 					</p>
 				</d-panel>
 				<d-panel label="Fifth Header" id="fifth">
-					<d-list id="list" style="height: 200px" selectionMode="multiple" store="store">
+					<d-list id="list" selectionMode="multiple" store="store">
 					</d-list>
 				</d-panel>
-				<div>
-					<p>
-						Arbitrary div
-					</p>
-				</div>
 			</d-accordion>
 		</div>
 		<h2>Title</h2>

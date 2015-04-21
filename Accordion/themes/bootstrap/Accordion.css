@@ -1,22 +1,48 @@
 .d-accordion {
   height: 100%;
-  display: block;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   position: relative;
   overflow: auto;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  align-items: stretch;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  -webkit-box-orient: vertical;
+  -moz-box-orient: vertical;
+  -ms-box-orient: vertical;
+  flex-direction: column;
 }
 .d-accordion > .d-panel {
   -moz-border-radius: 0;
   border-radius: 0;
   border-bottom: none;
+  position: relative;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  align-items: stretch;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  -webkit-box-orient: vertical;
+  -moz-box-orient: vertical;
+  -ms-box-orient: vertical;
+  flex-direction: column;
 }
 .d-accordion > .d-panel:first-child {
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
 }
 .d-accordion > .d-panel:last-child {
+  border: 1px solid;
+  border-color: #dddddd;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
 }
@@ -37,4 +63,12 @@
 .d-accordion > .d-panel > .d-toggle-button.d-checked {
   background-color: #428bca;
   color: #ffffff;
+}
+.d-accordion > .d-panel > .-d-panel-content,
+.fill {
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
 }

@@ -1,11 +1,12 @@
 define(["dcl/dcl",
 	"delite/register",
 	"dpointer/events",
+	"requirejs-dplugins/jquery!attributes/classes",
 	"delite/DisplayContainer",
 	"./Panel",
 	"./ToggleButton",
 	"delite/theme!./Accordion/themes/{{theme}}/Accordion.css"
-], function (dcl, register, events, DisplayContainer, Panel, ToggleButton) {
+], function (dcl, register, events, $, DisplayContainer, Panel, ToggleButton) {
 
 	function setVisibility(node, val) {
 		if (node) {
@@ -115,6 +116,7 @@ define(["dcl/dcl",
 		changeDisplay: function (widget, params) {
 			if (params.hide === true) {
 				setVisibility(widget, false);
+				$(widget.parentNode).removeClass("fill");
 				widget.parentNode.headerNode.checked = false;
 				//transition
 				widget.parentNode.open = false;
@@ -125,6 +127,7 @@ define(["dcl/dcl",
 					this._selectedChild = widget;
 					if (origin !== widget) {
 						setVisibility(origin, false);
+						$(origin.parentNode).removeClass("fill");
 						origin.parentNode.open = false;
 						origin.parentNode.headerNode.checked = false;
 					} else {
@@ -132,6 +135,7 @@ define(["dcl/dcl",
 					}
 				}
 				setVisibility(widget, true);
+				$(widget.parentNode).addClass("fill");
 				widget.parentNode.open = true;
 				return Promise.resolve();
 			}
