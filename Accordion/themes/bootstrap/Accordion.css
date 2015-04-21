@@ -35,6 +35,7 @@
   -moz-box-orient: vertical;
   -ms-box-orient: vertical;
   flex-direction: column;
+  overflow: auto;
 }
 .d-accordion > .d-panel:first-child {
   border-top-left-radius: 4px;
