@@ -8,7 +8,7 @@ define(["dcl/dcl",
 	var Panel = dcl(Container, {
 		baseClass: "d-panel",
 		label: "",
-		icon: "",
+		icon1: "",
 		icon2: "", //When used inside an accordion
 		template: template
 	});

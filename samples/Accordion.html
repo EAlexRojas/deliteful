@@ -13,24 +13,35 @@
 				baseUrl: "../.."
 			});
 		</script>
-		<script>
-			var ready = false;
+
+		<script type="text/javascript">
 			require([
 				"deliteful/Store",
-				"delite/theme!delite/themes/{{theme}}/global.css"	// page level CSS
+				"delite/theme!delite/themes/{{theme}}/global.css",	// page level CSS
+				"delite/register",
+				"deliteful/Accordion",
+				"deliteful/list/List",
+				"requirejs-domready/domReady!"
 			], function () {
-				require(["delite/register",
-					"deliteful/Accordion",
-					"deliteful/list/List",
-					"requirejs-domready/domReady!"
-				], function (register) {
-					register.parse();
-					ready = true;
-				});
+				document.body.style.display = "";
 			});
 		</script>
+		<style>
+			.icon-plus:before {
+				content: "\25b6";
+			}
+			.icon-minus:before {
+				content: "\25bc";
+			}
+			.icon-right:before {
+				content: "\21D2";
+			}
+			.icon-down:before {
+				content: "\21D3";
+			}
+		</style>
 	</head>
-	<body>
+	<body style="display:none">
 		<d-store id="store">
 			{"label": "list item 0", "righttext": "right text A"},
 			{"label": "list item 1", "righttext": "right text B"},
@@ -43,23 +54,43 @@
 			{"label": "list item 8", "righttext": "right text I"},
 			{"label": "list item 9", "righttext": "right text J"}
 		</d-store>
-		<d-accordion id="accordion" selectedChildId="first" singleOpen="true">
-			<div label="Second Header" id="second">
-				Second Content
-			</div>
-			<d-panel label="First Header" id="first">
-				First Content
-			</d-panel>
-			<div label="Third Header" id="third">
-				Third content
-				<ui>
-					<li>One</li>
-					<li>Two</li>
-					<li>...</li>
-				</ui>
-			</div>
-			<d-list id="list" style="height: 200px" selectionMode="multiple" store="store">
-			</d-list>
-		</d-accordion>
+		<div id="container" style="width: 200px; height: 400px">
+			<d-accordion id="accordion" singleOpen="false" selectedChildId="third" icon1="icon-right" icon2="icon-down">
+				<d-panel label="First Header" id="first" icon1="icon-plus" icon2="icon-minus">
+					First Content
+				</d-panel>
+				<div label="Second Header" id="second">
+					Second Content
+				</div>
+				<div label="Third Header" id="third">
+					Third content
+					<ui>
+						<li>One</li>
+						<li>Two</li>
+						<li>...</li>
+					</ui>
+				</div>
+				<div>
+					<p>
+						Arbitrary div
+					</p>
+				</div>
+				<d-panel label="Fourth Header" id="fourth">
+					<p>
+						Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore
+						et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+						aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+						cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+						culpa qui officia deserunt mollit anim id est laborum.
+					</p>
+				</d-panel>
+				<d-list id="list" selectionMode="multiple" store="store">
+				</d-list>
+			</d-accordion>
+		</div>
+		<h2>Title</h2>
+		<p>
+			Content Page
+		</p>
 	</body>
 </html>

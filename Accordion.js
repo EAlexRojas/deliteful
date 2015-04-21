@@ -1,12 +1,12 @@
 define(["dcl/dcl",
 	"delite/register",
-	"requirejs-dplugins/i18n!./Accordion/nls/messages",
 	"dpointer/events",
+	"requirejs-dplugins/jquery!attributes/classes",
 	"delite/DisplayContainer",
 	"./Panel",
 	"./ToggleButton",
 	"delite/theme!./Accordion/themes/{{theme}}/Accordion.css"
-], function (dcl, register, messages, events, DisplayContainer, Panel, ToggleButton) {
+], function (dcl, register, events, $, DisplayContainer, Panel, ToggleButton) {
 
 	function setVisibility(node, val) {
 		if (node) {
@@ -23,7 +23,6 @@ define(["dcl/dcl",
 	var Accordion = dcl(DisplayContainer, {
 
 		baseClass: "d-accordion",
-		nls: messages,
 		selectedChildId : "",
 		icon1 : "",
 		icon2 : "",
@@ -38,8 +37,8 @@ define(["dcl/dcl",
 			return children;
 		},
 
-		_setSelectedChildIdAttr: function (child) {
-			var childNode = this.ownerDocument.getElementById(child);
+		_setSelectedChildIdAttr: function (childId) {
+			var childNode = this.ownerDocument.getElementById(childId);
 			if (childNode) {
 				var node;
 				if (childNode.baseClass === "d-panel") {
@@ -53,7 +52,7 @@ define(["dcl/dcl",
 				} else {
 					this._pendingChild = node;
 				}
-				this._set("selectedChildId", child);
+				this._set("selectedChildId", childId);
 			}
 		},
 
@@ -65,9 +64,26 @@ define(["dcl/dcl",
 			}
 		},
 
+		_setIcon1Attr: function (icon1) {
+			for (var i = 0, l = this.children.length; i < l; i++) {
+				if (!this.children[i].headerNode.iconClass){
+					this.children[i].headerNode.iconClass = icon1;
+				}
+			}
+			this._set("icon1", icon1);
+		},
+
+		_setIcon2Attr: function (icon2) {
+			for (var i = 0, l = this.children.length; i < l; i++) {
+				if (!this.children[i].headerNode.checkedIconClass){
+					this.children[i].headerNode.checkedIconClass = icon2;
+				}
+			}
+			this._set("icon2", icon2);
+		},
+
 		_setChildrenInitialVisibility: function () {
-			var children = this.getChildren();
-			children.forEach(function (child) {
+			this.getChildren().forEach(function (child) {
 				setVisibility(child, this.singleOpen ? child === this._selectedChild : false);
 			}, this);
 		},
@@ -112,27 +128,26 @@ define(["dcl/dcl",
 			var panel = child;
 			if (panel.baseClass !== "d-panel") {
 				panel = new Panel({
-					label: child.getAttribute("label") || "Default header",
-					icon: this.icon1
+					label: child.getAttribute("label") || "Default header"
 				});
 				panel.containerNode.appendChild(child.cloneNode(true));
 			}
 			var toggle = new ToggleButton({
 				label: panel.headerNode.textContent,
-				iconClass: this.icon1,
-				checkedIconClass: this.icon2
+				iconClass: panel.icon1,
+				checkedIconClass: panel.icon2
 			});
 			toggle.placeAt(panel.headerNode, "replace");
 			toggle.on("click", this._changeHandler.bind(this));
 			panel.headerNode = toggle;
-			panel.icon2 = this.icon2;
-			panel.parent = this;
 			return panel;
 		},
 
 		changeDisplay: function (widget, params) {
 			if (params.hide === true) {
 				setVisibility(widget, false);
+				$(widget.parentNode).removeClass("fill");
+				widget.parentNode.headerNode.checked = false;
 				//transition
 				return Promise.resolve();
 			} else {
@@ -141,12 +156,14 @@ define(["dcl/dcl",
 					this._selectedChild = widget;
 					if (origin !== widget) {
 						setVisibility(origin, false);
+						$(origin.parentNode).removeClass("fill");
 						origin.parentNode.headerNode.checked = false;
 					} else {
 						origin.parentNode.headerNode.checked = true;
 					}
 				}
 				setVisibility(widget, true);
+				$(widget.parentNode).addClass("fill");
 				return Promise.resolve();
 			}
 		},

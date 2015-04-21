@@ -1,14 +1,20 @@
 @import "../../../../delite/themes/bootstrap/includes";
 .d-accordion {
   height: 100%;
-  display: block;
   .box-sizing(border-box);
   position: relative; // Enables clipping
   overflow: auto;
+  .display-flex();
+  align-items: stretch;
+  .flex-direction-column();
 }
 .d-accordion > .d-panel {
   .border-radius(0);
   border-bottom: none;
+  position: relative;
+  .display-flex();
+  align-items: stretch;
+  .flex-direction-column();
 }
 
 .d-accordion > .d-panel:first-child {
@@ -17,6 +23,8 @@
 }
 
 .d-accordion > .d-panel:last-child {
+  border: 1px solid;
+  border-color: @panel-inner-border;
   border-bottom-left-radius: @panel-border-radius;
   border-bottom-right-radius: @panel-border-radius;
 }
@@ -39,4 +47,9 @@
 .d-accordion > .d-panel > .d-toggle-button.d-checked {
   background-color: @component-active-bg;
   color: @component-active-color;
+}
+
+.d-accordion > .d-panel > .-d-panel-content,
+.fill {
+  .flex(1);
 }
