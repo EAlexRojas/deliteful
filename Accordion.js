@@ -116,7 +116,7 @@ define(["dcl/dcl",
 			if (this.singleOpen) {
 				this.show(panel.containerNode);
 			} else {
-				if(panel.containerNode.style.visibility === "visible") {
+				if(panel.open) {
 					this.hide(panel.containerNode);
 				} else {
 					this.show(panel.containerNode);
@@ -148,23 +148,22 @@ define(["dcl/dcl",
 				setVisibility(widget, false);
 				$(widget.parentNode).removeClass("fill");
 				widget.parentNode.headerNode.checked = false;
+				widget.parentNode.open = false;
 				//transition
-				return Promise.resolve();
 			} else {
 				if (this.singleOpen) {
 					var origin = this._selectedChild;
 					this._selectedChild = widget;
 					if (origin !== widget) {
-						setVisibility(origin, false);
-						$(origin.parentNode).removeClass("fill");
-						origin.parentNode.headerNode.checked = false;
+						this.hide(origin);
 					} else {
 						origin.parentNode.headerNode.checked = true;
 					}
 				}
 				setVisibility(widget, true);
 				$(widget.parentNode).addClass("fill");
-				return Promise.resolve();
+				widget.parentNode.open = true;
+				//transition
 			}
 		},
 
