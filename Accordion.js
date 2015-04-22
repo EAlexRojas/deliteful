@@ -118,18 +118,14 @@ define(["dcl/dcl",
 				setVisibility(widget, false);
 				$(widget.parentNode).removeClass("fill");
 				widget.parentNode.headerNode.checked = false;
-				//transition
 				widget.parentNode.open = false;
-				return Promise.resolve();
+				//transition
 			} else {
 				if (this.singleOpen) {
 					var origin = this._selectedChild;
 					this._selectedChild = widget;
 					if (origin !== widget) {
-						setVisibility(origin, false);
-						$(origin.parentNode).removeClass("fill");
-						origin.parentNode.open = false;
-						origin.parentNode.headerNode.checked = false;
+						this.hide(origin);
 					} else {
 						origin.parentNode.headerNode.checked = true;
 					}
@@ -137,7 +133,7 @@ define(["dcl/dcl",
 				setVisibility(widget, true);
 				$(widget.parentNode).addClass("fill");
 				widget.parentNode.open = true;
-				return Promise.resolve();
+				//transition
 			}
 		},
 
