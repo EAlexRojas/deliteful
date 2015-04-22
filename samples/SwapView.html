@@ -16,14 +16,16 @@
 
 	<script type="text/javascript">
 		require([
+			"delite/register",
 			"deliteful/SwapView", "deliteful/ViewIndicator", "deliteful/Button",
 			"delite/theme!delite/themes/{{theme}}/global.css",	// page level CSS
 			"requirejs-domready/domReady!"
-		], function () {
+		], function (register) {
 
 			var handle = function (event) {
 				console.log(event.type + ": " + event.dest);
 			};
+			register.deliver();
 			// Listen for delite/DisplayContainer events
 			vs.on("delite-display-load", handle);
 			vs.on("delite-before-show", handle);
