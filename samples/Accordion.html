@@ -17,13 +17,16 @@
 		<script type="text/javascript">
 			require([
 				"deliteful/Store",
-				"delite/theme!delite/themes/{{theme}}/global.css",	// page level CSS
-				"delite/register",
-				"deliteful/Accordion",
-				"deliteful/list/List",
-				"requirejs-domready/domReady!"
+				"deliteful/Panel",
+				"delite/theme!delite/themes/{{theme}}/global.css"	// page level CSS
 			], function () {
-				document.body.style.display = "";
+				require([
+					"deliteful/list/List",
+					"deliteful/Accordion",
+					"requirejs-domready/domReady!"
+				], function() {
+					document.body.style.display = "";
+				})
 			});
 		</script>
 		<style>
@@ -55,8 +58,8 @@
 			{"label": "list item 9", "righttext": "right text J"}
 		</d-store>
 		<div id="container" style="width: 200px; height: 400px">
-			<d-accordion id="accordion" singleOpen="false" selectedChildId="third" icon1="icon-right" icon2="icon-down">
-				<d-panel label="First Header" id="first" icon1="icon-plus" icon2="icon-minus">
+			<d-accordion id="accordion" singleOpen="true" selectedChildId="third" icon1="icon-plus" icon2="icon-minus">
+				<d-panel label="First Header" id="first" icon1="icon-right" icon2="icon-down">
 					First Content
 				</d-panel>
 				<div label="Second Header" id="second">
