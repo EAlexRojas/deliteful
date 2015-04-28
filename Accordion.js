@@ -3,10 +3,9 @@ define(["dcl/dcl",
 	"dpointer/events",
 	"requirejs-dplugins/jquery!attributes/classes",
 	"delite/DisplayContainer",
-	"./Panel",
 	"./ToggleButton",
 	"delite/theme!./Accordion/themes/{{theme}}/Accordion.css"
-], function (dcl, register, events, $, DisplayContainer, Panel, ToggleButton) {
+], function (dcl, register, events, $, DisplayContainer, ToggleButton) {
 
 	function setVisibility(node, val) {
 		if (node) {
