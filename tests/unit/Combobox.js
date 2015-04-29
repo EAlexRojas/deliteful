@@ -90,15 +90,17 @@ define([
 		var selectionMode = multiple ? "multiple" : "single";
 		var combo = new Combobox({ id: id, selectionMode: selectionMode });
 		initCombobox(combo, trackable);
-		container.appendChild(combo);
-		combo.attachedCallback();
+		combo.placeAt(container);
+		//container.appendChild(combo);
+		//combo.attachedCallback();
 		return combo;
 	};
 
 	var createMyCombobox = function (id, trackable) {
 		var combo = new MyCombobox({ id: id });
 		initCombobox(combo, trackable);
-		container.appendChild(combo);
+		//container.appendChild(combo);
+		combo.placeAt(container);
 		combo.attachedCallback();
 		return combo;
 	};
@@ -139,8 +141,6 @@ define([
 			// trigger an invalidation, hence:
 			combo.notifyCurrentValue("store");
 		}
-		combo.list.deliver();
-		combo.deliver();
 
 		// Number of options
 		assert.strictEqual(combo.list.getItemRenderers().length, nOptions,
@@ -173,9 +173,6 @@ define([
 			// Higher than the 100 delay of Combobox' defer when closing the dropdown
 			var delay = 200;
 			setTimeout(d.callback(function () {
-				combo.deliver();
-				combo.list.deliver();
-
 				assert.strictEqual(combo.valueNode.value, "Option 2",
 						"item2.item.label: " + item2.item.label +
 							" combo.valueNode.value after selecting item2 on combo.id: " +
@@ -224,7 +221,6 @@ define([
 				combo = createCombobox("combo1");
 			} // else the declarative case
 
-			combo.deliver();
 			assert.isTrue($(combo).hasClass(outerCSS),
 					"Expecting " + outerCSS +
 					" CSS class on outer element of combo.id: " + combo.id);
@@ -241,7 +237,6 @@ define([
 				combo = createMyCombobox("mycombo1");
 			} // else the declarative case
 
-			combo.deliver();
 			assert.isTrue($(combo).hasClass(outerCSS),
 					"Expecting " + outerCSS +
 					" CSS class on outer element of combo.id: " + combo.id);
@@ -260,7 +255,6 @@ define([
 				combo = createCombobox("combo1");
 			} // else the declarative case
 
-			combo.deliver();
 			checkDefaultValues(combo);
 
 			combo = document.getElementById("mycombo1");
@@ -269,7 +263,6 @@ define([
 				combo = createMyCombobox("mycombo1");
 			} // else the declarative case
 
-			combo.deliver();
 			checkDefaultValues(combo);
 		}
 	};
@@ -285,32 +278,28 @@ define([
 			container = document.createElement("div");
 			document.body.appendChild(container);
 			container.innerHTML = html;
-			register.parse(container);
+			register.deliver();
 		},
 		afterEach: function () {
 			container.parentNode.removeChild(container);
 		},
 		"Store.add/remove/put (custom element store)" : function () {
 			var combo = document.getElementById("combo1");
-			combo.deliver();
 			checkCombobox(combo, this);
 
 			combo = document.getElementById("mycombo1");
-			combo.deliver();
 			checkCombobox(combo, this);
 		},
 		"Attribute mapping for label" : function () {
 			// Check the attribute mapping for label
 
 			container.innerHTML = htmlMappedAttr;
-			register.parse(container);
+			register.deliver();
 
 			var combo = document.getElementById("combo1");
-			combo.deliver();
 			checkCombobox(combo, this);
 
 			combo = document.getElementById("mycombo1");
-			combo.deliver();
 			checkCombobox(combo, this);
 		}
 
@@ -332,36 +321,18 @@ define([
 			document.body.appendChild(container);
 		},
 		"Store.add/remove/put (user's trackable Memory store)" : function () {
-			// var combo = document.getElementById("combo1");
-			if (has("ios")) {
-				// For some reason, the testing with click() doesn't pass on iOS for now,
-				// although it does seem to work when testing manually on the device.
-				// TODO: is it due to intern? other reason?
-				this.skip("Skipping this test on iOS.");
-			}
 			var combo = createCombobox("combo-a-1", true);
-			combo.deliver();
 			checkCombobox(combo, this);
 
 			combo = createMyCombobox("combo-a-2", true);
-			combo.deliver();
 			checkCombobox(combo, this);
 		},
 
 		"Store.add (user's non-trackable Memory store)" : function () {
-			// var combo = document.getElementById("combo1");
-			if (has("ios")) {
-				// For some reason, the testing with click() doesn't pass on iOS for now,
-				// although it does seem to work when testing manually on the device.
-				// TODO: is it due to intern? other reason?
-				this.skip("Skipping this test on iOS.");
-			}
 			var combo = createCombobox("combo-b-1", false);
-			combo.deliver();
 			checkCombobox(combo, this);
 
 			combo = createMyCombobox("combo-b-2", false);
-			combo.deliver();
 			checkCombobox(combo, this);
 		},
 
@@ -394,6 +365,10 @@ define([
 		},
 
 		"widget.value, and change and input events (selectionMode=single)": function () {
+			/* jshint eqeqeq: false */
+			if (has("ie") == "10") {
+				this.skip("Problem on Internet Explorer 10");
+			}
 			var combo = createCombobox("combo-c-1", false /* trackable */);
 			var changeCounter = 0, inputCounter = 0;
 			var changeValue = null, inputValue = null;
@@ -405,20 +380,11 @@ define([
 				inputCounter++;
 				inputValue = combo.value;
 			});
-			combo.deliver();
-			combo.list.deliver();
 
 			assert.strictEqual(changeCounter, 0,
 				"There should be no change event after initialization, before interaction");
 			assert.strictEqual(inputCounter, 0,
 				"There should be no input event after initialization, before interaction");
-
-			if (has("ios")) {
-				// For some reason, the testing with click() doesn't pass on iOS for now,
-				// although it does seem to work when testing manually on the device.
-				// TODO: is it due to intern? other reason?
-				this.skip("Skipping this test on iOS.");
-			}
 
 			var d = this.async(2000);
 
@@ -484,6 +450,10 @@ define([
 		},
 
 		"widget.value, and change and input events (selectionMode=multiple)": function () {
+			/* jshint eqeqeq: false */
+			if (has("ie") == "10") {
+				this.skip("Problem on Internet Explorer 10");
+			}
 			var combo = createCombobox("combo-d-1", false /* trackable */, true /* selectionMode=multiple */);
 			var changeCounter = 0, inputCounter = 0;
 			var changeValue = null, inputValue = null;
@@ -495,20 +465,11 @@ define([
 				inputCounter++;
 				inputValue = combo.value;
 			});
-			combo.deliver();
-			combo.list.deliver();
 
 			assert.strictEqual(changeCounter, 0,
 				"There should be no change event after initialization, before interaction");
 			assert.strictEqual(inputCounter, 0,
 				"There should be no input event after initialization, before interaction");
-
-			if (has("ios")) {
-				// For some reason, the testing with click() doesn't pass on iOS for now,
-				// although it does seem to work when testing manually on the device.
-				// TODO: is it due to intern? other reason?
-				this.skip("Skipping this test on iOS.");
-			}
 
 			var d = this.async(4000);
 
@@ -577,19 +538,10 @@ define([
 		"widget value with item value different than item label (selectionMode=single)": function () {
 			// Set List.valueAttr such that the render items contain the myValue field
 			// of the store data items.
-			if (has("ios")) {
-				// For some reason, the testing with click() doesn't pass on iOS for now,
-				// although it does seem to work when testing manually on the device.
-				// TODO: is it due to intern? other reason?
-				this.skip("Skipping this test on iOS.");
-			}
 			var list = new List({store: dataStoreWithValue, valueAttr: "myValue"});
 			var combo = new Combobox({list: list});
 			container.appendChild(combo);
 			combo.attachedCallback();
-
-			combo.deliver();
-			combo.list.deliver();
 
 			var d = this.async(1000);
 
@@ -622,19 +574,10 @@ define([
 		"widget value with item value different than item label (selectionMode=multiple)": function () {
 			// Set List.valueAttr such that the render items contain the myValue field
 			// of the store data items.
-			if (has("ios")) {
-				// For some reason, the testing with click() doesn't pass on iOS for now,
-				// although it does seem to work when testing manually on the device.
-				// TODO: is it due to intern? other reason?
-				this.skip("Skipping this test on iOS.");
-			}
 			var list = new List({store: dataStoreWithValue, valueAttr: "myValue"});
 			var combo = new Combobox({list: list, selectionMode: "multiple"});
 			container.appendChild(combo);
 			combo.attachedCallback();
-
-			combo.deliver();
-			combo.list.deliver();
 
 			var d = this.async(1000);
 
@@ -671,9 +614,7 @@ define([
 			var combo = new Combobox({list: list}); // single selection mode
 			container.appendChild(combo);
 			combo.attachedCallback();
-			combo.deliver();
-			combo.list.deliver();
-			
+
 			// Add items to the data store after attachedCallback().
 			combo.list.store = new Memory(); // triggers async re-rendering of List
 			addOptions(combo, 0, nOptions - 1);

@@ -16,9 +16,8 @@ define([
 			container = document.createElement("div");
 			document.body.appendChild(container);
 			container.innerHTML = htmlContent;
-			register.parse(container);
+			register.deliver();
 			node = document.getElementById("dlayout");
-			node.deliver();
 		},
 		"Horizontal LinearLayout Fill Width" : function () {
 			var children = node.getChildren();

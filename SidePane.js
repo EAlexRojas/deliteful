@@ -7,8 +7,7 @@ define([
 	"delite/register",
 	"delite/DisplayContainer",
 	"requirejs-dplugins/Promise!",
-	"delite/theme!./SidePane/themes/{{theme}}/SidePane.css",
-	"requirejs-dplugins/has!bidi?delite/theme!./SidePane/themes/{{theme}}/SidePane_rtl.css"
+	"delite/theme!./SidePane/themes/{{theme}}/SidePane.css"
 ],
 	function (dcl, pointer, $, has, register, DisplayContainer, Promise) {
 		function prefix(v) {
@@ -101,6 +100,10 @@ define([
 			_opening: false,
 			_originX: NaN,
 			_originY: NaN,
+
+			attachedCallback: function () {
+				this.parentNode.style.overflow = "hidden";
+			},
 
 			show: dcl.superCall(function (sup) {
 				return function () {
@@ -276,7 +279,6 @@ define([
 			},
 
 			refreshRendering: function (props) {
-				this.parentNode.style.overflow = "hidden";
 				if (!("mode" in props || "position" in props || "animate" in props)) {
 					return;
 				}
@@ -288,12 +290,7 @@ define([
 
 				if (nextElement) {
 					$(nextElement).removeClass(prefix("animate"));
-					if (!this.isLeftToRight()) {
-						$(nextElement).addClass("d-rtl");
-					}
-					else {
-						$(nextElement).removeClass("d-rtl");
-					}
+					$(nextElement).toggleClass("d-rtl", this.effectiveDir === "rtl");
 				}
 
 				if ("mode" in props) {
@@ -354,8 +351,8 @@ define([
 			},
 
 			_isLeft: function () {
-				return (this.position === "start" && this.isLeftToRight()) ||
-					(this.position === "end" && !this.isLeftToRight());
+				return (this.position === "start" && this.effectiveDir === "ltr") ||
+					(this.position === "end" && this.effectiveDir === "rtl");
 			},
 
 			_pointerDownHandler: function (event) {

@@ -7,20 +7,21 @@ define([
 	"deliteful/SidePane"
 ], function (registerSuite, assert, domGeom, $, register, SidePane) {
 	var node;
+	var origBodyStyle;
 
 	registerSuite({
 		name: "SidePane",
 		setup: function () {
+			origBodyStyle = document.body.style.cssText;
 			node = new SidePane();
 			document.body.appendChild(node);
-			register.parse();
 			node.show();
 		},
 		"Default values" : function () {
-			assert.deepEqual(node.mode, "push");
-			assert.deepEqual(node.position, "start");
-			assert.deepEqual(node.animate, true);
-			assert.deepEqual(node.swipeClosing, true);
+			assert.strictEqual(node.mode, "push");
+			assert.strictEqual(node.position, "start");
+			assert.isTrue(node.animate, "node.animate");
+			assert.isTrue(node.swipeClosing, "node.swipeClosing");
 		},
 		"Size Computation" : function () {
 			var box = domGeom.getMarginBox(node);
@@ -69,6 +70,7 @@ define([
 		},
 		teardown: function () {
 			node.parentNode.removeChild(node);
+			document.body.style.cssText = origBodyStyle;	// so page can scroll again
 		}
 	});
 });

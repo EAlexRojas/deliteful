@@ -225,7 +225,6 @@ define(["dcl/dcl",
 
 		var hovering = false;
 		function _pointerOverHandler() {
-			console.log("hover event");
 			if (!hovering) {
 				hovering = true;
 				element._timer.pause();

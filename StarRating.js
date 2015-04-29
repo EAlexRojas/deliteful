@@ -1,17 +1,15 @@
 /** @module deliteful/StarRating */
 define([
-	"requirejs-dplugins/has",
+	"dcl/dcl",
 	"dpointer/events",
 	"delite/keys",
 	"requirejs-dplugins/jquery!attributes/classes",
 	"delite/register",
 	"delite/FormValueWidget",
-	"requirejs-dplugins/has!bidi?./StarRating/bidi/StarRating",
 	"requirejs-dplugins/i18n!./StarRating/nls/StarRating",
-	"delite/theme!./StarRating/themes/{{theme}}/StarRating.css",
-	"requirejs-dplugins/has!bidi?delite/theme!./StarRating/themes/{{theme}}/StarRating_rtl.css"
-], function (has, pointer, keys, $,
-			register, FormValueWidget, BidiStarRating, messages) {
+	"delite/theme!./StarRating/themes/{{theme}}/StarRating.css"
+], function (dcl, pointer, keys, $,
+			register, FormValueWidget, messages) {
 
 	/**
 	 * A widget that displays a rating, usually with stars, and that allows setting a different rating value
@@ -21,7 +19,7 @@ define([
 	 * @class module:deliteful/StarRating
 	 * @augments delite/FormValueWidget
 	 */
-	var StarRating = register.dcl([FormValueWidget], /** @lends module:deliteful/StarRating# */ {
+	return register("d-star-rating", [HTMLElement, FormValueWidget], /** @lends module:deliteful/StarRating# */ {
 		/**
 		 * The name of the CSS class of this widget.
 		 * @member {string}
@@ -67,8 +65,6 @@ define([
 		=====*/
 		_hovering: false,
 		_otherEventsHandles: [],
-		_incrementKeyCodes: [keys.RIGHT_ARROW, keys.UP_ARROW, keys.NUMPAD_PLUS], // keys to press to increment value
-		_decrementKeyCodes: [keys.LEFT_ARROW, keys.DOWN_ARROW, keys.NUMPAD_MINUS], // keys to press to decrement value
 
 		render: function () {
 			this.focusNode = this.ownerDocument.createElement("div");
@@ -79,20 +75,30 @@ define([
 			this.focusNode.setAttribute("aria-valuemin", 0);
 		},
 
-		createdCallback: register.after(function () {
-			var inputs = this.getElementsByTagName("INPUT");
-			if (inputs.length) {
-				this.valueNode = inputs[0];
-				if (!isNaN(parseFloat(this.valueNode.value))) {
-					this.value = this.valueNode.value;
-				}
-				this.valueNode.style.display = "none";
-			} else {
-				this.valueNode = this.ownerDocument.createElement("input");
-				this.valueNode.style.display = "none";
-				this.appendChild(this.valueNode);
-			}
+		postRender: function () {
 			this.notifyCurrentValue("disabled", "max", "value", "readOnly", "allowZero");
+		},
+
+
+		/**
+		 * Handle setting of the value from the input node, if set it should be used in place of the value attribute.
+		 */
+		_mapAttributes: dcl.superCall(function (sup) {
+			return function () {
+				var inputs = this.getElementsByTagName("INPUT");
+				if (inputs.length) {
+					this.valueNode = inputs[0];
+					this.valueNode.style.display = "none";
+					if (!isNaN(parseFloat(this.valueNode.value))) {
+						this.setAttribute("value", this.valueNode.value);
+					}
+				} else {
+					this.valueNode = this.ownerDocument.createElement("input");
+					this.valueNode.style.display = "none";
+					this.appendChild(this.valueNode);
+				}
+				return sup.call(this);
+			};
 		}),
 
 		/* jshint maxcomplexity: 13 */
@@ -207,12 +213,22 @@ define([
 		},
 
 		_keyDownHandler: function () {
-			if (this._incrementKeyCodes.indexOf(event.keyCode) !== -1) {
+			var incrementArrow = this.effectiveDir === "ltr" ? keys.RIGHT_ARROW : keys.LEFT_ARROW,
+				decrementArrow = this.effectiveDir === "ltr" ? keys.LEFT_ARROW : keys.RIGHT_ARROW;
+
+			switch (event.keyCode) {
+			case incrementArrow:
+			case keys.UP_ARROW:
+			case keys.NUMPAD_PLUS:
 				event.preventDefault();
 				this._incrementValue();
-			} else if (this._decrementKeyCodes.indexOf(event.keyCode) !== -1) {
+				break;
+			case decrementArrow:
+			case keys.DOWN_ARROW:
+			case keys.NUMPAD_MINUS:
 				event.preventDefault();
 				this._decrementValue();
+				break;
 			}
 		},
 
@@ -267,7 +283,4 @@ define([
 			}
 		}
 	});
-
-	return register("d-star-rating",
-			has("bidi") ? [HTMLElement, StarRating, BidiStarRating] : [HTMLElement, StarRating]);
 });

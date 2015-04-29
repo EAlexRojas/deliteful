@@ -5,15 +5,16 @@ define([
 	"delite/register",
 	"deliteful/SidePane"
 ], function (registerSuite, assert, $, register) {
-	var container, sp;
+	var container, sp, origBodyStyle;
 	var htmlContent = "<d-side-pane id='sp'></d-side-pane><div id='content'></div>";
 	registerSuite({
 		name: "SidePane Show Hide",
 		setup: function () {
+			origBodyStyle = document.body.style.cssText;
 			container = document.createElement("div");
 			document.body.appendChild(container);
 			container.innerHTML = htmlContent;
-			register.parse(container);
+			register.deliver();
 			sp = document.getElementById("sp");
 		},
 		"show" : function () {
@@ -55,6 +56,7 @@ define([
 		},
 		teardown: function () {
 			container.parentNode.removeChild(container);
+			document.body.style.cssText = origBodyStyle;	// so page can scroll again
 		}
 	});
 });

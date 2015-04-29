@@ -12,8 +12,7 @@ define([
 	"./ItemRenderer",
 	"./CategoryRenderer",
 	"./_LoadingPanel",
-	"delite/theme!./List/themes/{{theme}}/List.css",
-	"requirejs-dplugins/has!bidi?delite/theme!./List/themes/{{theme}}/List_rtl.css"
+	"delite/theme!./List/themes/{{theme}}/List.css"
 ], function (dcl, register, $, keys, CustomElement,
 		Selection, KeyNav, StoreMap, Scrollable, ItemRenderer, CategoryRenderer, LoadingPanel) {
 
@@ -192,8 +191,6 @@ define([
 
 		// CSS classes internally referenced by the List widget
 		_cssClasses: {
-			item: "d-list-item",
-			category: "d-list-category",
 			cell: "d-list-cell",
 			selected: "d-selected",
 			selectable: "d-selectable",
@@ -280,7 +277,7 @@ define([
 					// update aria-selected attribute on unselected items
 					for (i = 0; i < this.children.length; i++) {
 						child = this.children[i];
-						if ($(child).hasClass(this._cssClasses.item)
+						if (child.tagName.toLowerCase() === this.itemRenderer.tag
 								&& child.renderNode // no renderNode for the loading panel child
 								&& !child.renderNode.hasAttribute("aria-selected")) {
 							child.renderNode.setAttribute("aria-selected", "false");
@@ -331,8 +328,7 @@ define([
 			return function () {
 				// Deliver pending changes to the list and its renderers
 				sup.apply(this, arguments);
-				var renderers = this.querySelectorAll("."
-						+ this._cssClasses.item + ", ." + this._cssClasses.category);
+				var renderers = this.querySelectorAll(this.itemRenderer.tag + ", " + this.categoryRenderer.tag);
 				for (var i = 0; i < renderers.length; i++) {
 					renderers.item(i).deliver();
 				}
@@ -346,7 +342,7 @@ define([
 		 * @returns {NodeList}
 		 */
 		getItemRenderers: function () {
-			return this.querySelectorAll("." + this._cssClasses.item);
+			return this.querySelectorAll(this.itemRenderer.tag);
 		},
 
 		/**
@@ -774,7 +770,6 @@ define([
 				renderer.renderNode.setAttribute("aria-selected", itemSelected ? "true" : "false");
 				$(renderer).toggleClass(this._cssClasses.selected, itemSelected);
 			}
-			renderer.deliver();
 			return renderer;
 		},
 
@@ -786,9 +781,7 @@ define([
 		 * @private
 		 */
 		_createCategoryRenderer: function (item) {
-			var renderer = new this.categoryRenderer({item: item, tabindex: "-1"});
-			renderer.deliver();
-			return renderer;
+			return new this.categoryRenderer({item: item, tabindex: "-1"});
 		},
 
 		/**
@@ -797,7 +790,7 @@ define([
 		 * @return {boolean}
 		 */
 		isCategoryRenderer: function (/*deliteful/list/Renderer*/renderer) {
-			return $(renderer).hasClass(this._cssClasses.category);
+			return renderer.tagName.toLowerCase() === this.categoryRenderer.tag;
 		},
 
 		/**
@@ -832,8 +825,7 @@ define([
 		 * @private
 		 */
 		_getFirstRenderer: function () {
-			return this.querySelector("." + this._cssClasses.item
-					+ ", ." + this._cssClasses.category);
+			return this.querySelector(this.itemRenderer.tag + ", " + this.categoryRenderer.tag);
 		},
 
 
@@ -844,7 +836,7 @@ define([
 		 */
 		_getLastRenderer: function () {
 			var renderers = this
-								.querySelectorAll("." + this._cssClasses.item + ", ." + this._cssClasses.category);
+								.querySelectorAll(this.itemRenderer.tag + ", " + this.categoryRenderer.tag);
 			return renderers.length ? renderers.item(renderers.length - 1) : null;
 		},
 

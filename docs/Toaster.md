@@ -63,11 +63,9 @@ See [`delite/Widget`](/delite/docs/master/Widget.md) for full details on how ins
 ```js
 var mytoaster;
 require([
-	"delite/register",
 	"deliteful/Toaster",
 	"requirejs-domready/domReady!"
-	], function(register, Toaster){
-		register.parse()
+	], function(Toaster){
 		// posting a message
 		mytoaster.postMessage("Form submitted");
 	});
@@ -82,10 +80,9 @@ require([
 ```js
 var mytoaster;
 require([
-		"delite/register",
 		"deliteful/Toaster",
 		"requirejs-domready/domReady!"
-		], function(register, Toaster){
+		], function(Toaster){
 			mytoaster = new Toaster();
 			mytoaster.placeAt("container");
 
@@ -103,11 +100,10 @@ The `Toaster.postMessage()` also supports messages as widgets
 ```js
 var mytoaster;
 require([
-	"delite/register",
 	"deliteful/ToasterMessage",
 	"deliteful/Toaster",
 	"requirejs-domready/domReady!"
-	], function(register, ToasterMessage, Toaster){
+	], function(ToasterMessage, Toaster){
 		mytoaster = new Toaster();
 		mytoaster.placeAt("container");
 

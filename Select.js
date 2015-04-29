@@ -2,13 +2,14 @@
 define([
 	"dcl/dcl",
 	"requirejs-dplugins/jquery!attributes/classes",
+	"decor/sniff",
 	"delite/register",
 	"delite/FormWidget",
 	"delite/StoreMap",
 	"delite/Selection",
 	"delite/handlebars!./Select/Select.html",
 	"delite/theme!./Select/themes/{{theme}}/Select.css"
-], function (dcl, $, register,
+], function (dcl, $, has, register,
 	FormWidget, StoreMap, Selection, template) {
 
 	/**
@@ -37,9 +38,8 @@ define([
 	 * 
 	 * @example <caption>Using store custom element in markup</caption>
 	 * JS:
-	 * require(["delite/register", "deliteful/Select", "requirejs-domready/domReady!"],
-	 *   function (register) {
-	 *     register.parse();
+	 * require(["deliteful/Select", "requirejs-domready/domReady!"],
+	 *   function () {
 	 *   });
 	 * HTML:
 	 * <d-store id="myStore">
@@ -49,10 +49,9 @@ define([
 	 * <d-select id="select" store="myStore"></d-select>
 	 * @example <caption>Using programmatically created store</caption>
 	 * JS:
-	 * require(["delite/register", "dstore/Memory", "dstore/Trackable",
+	 * require(["dstore/Memory", "dstore/Trackable",
 	 *         "deliteful/Select", "requirejs-domready/domReady!"],
-	 *   function (register, Memory, Trackable) {
-	 *     register.parse();
+	 *   function (Memory, Trackable) {
 	 *     var store = new (Memory.createSubclass(Trackable))({});
 	 *     select1.store = store;
 	 *     store.add({text: "Option 1", value: "1"});
@@ -222,6 +221,7 @@ define([
 		},
 		
 		refreshRendering: function (props) {
+			/* jshint maxcomplexity: 13 */
 			if ("renderItems" in props) {
 				// Populate the select with the items retrieved from the store.
 				var renderItems = this.renderItems;
@@ -253,6 +253,8 @@ define([
 						}
 						if (renderItem.value !== undefined) { // optional
 							option.setAttribute("value", renderItem.value);
+						} else if (has("ie") && renderItem.text !== undefined) { // #546
+							option.setAttribute("value", renderItem.text);
 						}
 						// The selection API (delite/Selection) needs to be called consistently
 						// for data items, not for render items.
