@@ -337,7 +337,8 @@ define(["intern",
 					/*jshint -W061 */
 					.execute("return actionsHover;") // NOTE: a global variable existing in PAGE
 					.then(function (actions) {
-						var action = actions.expirable3000;
+						var action = actions.expirable5000;
+						action.toaster.animationEnterClass = "";//To avoid timing problems
 						return remote
 							// click on show button
 							.findById(action.buttonId)
@@ -368,7 +369,7 @@ define(["intern",
 
 							// wait for the message to expire
 							.then(pollUntil(codeExp(action), [],
-								3000 + intern.config.WAIT_TIMEOUT, intern.config.POLL_INTERVAL))
+								5000 + intern.config.WAIT_TIMEOUT, intern.config.POLL_INTERVAL))
 							// wait for the message to be removed
 							.then(pollUntil(codeRem(action), [],
 								intern.config.WAIT_TIMEOUT + ANIMATION_DURATION, intern.config.POLL_INTERVAL))
