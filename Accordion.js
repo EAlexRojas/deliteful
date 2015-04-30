@@ -104,6 +104,14 @@ define(["dcl/dcl",
 					}
 				}
 			}
+			this.showOpenPanels();
+		},
+
+		preRender: function () {
+			this._panelList = [];
+		},
+
+		showOpenPanels: function () {
 			//If singleOpen, the default open panel is the first one
 			if (this.singleOpen && !this._selectedChild && this._panelList.length > 0) {
 				this._selectedChild = this._panelList[0];
@@ -114,19 +122,10 @@ define(["dcl/dcl",
 			}
 		},
 
-		preRender: function () {
-			this._panelList = [];
-		},
-
 		refreshRendering: function(props) {
 			if ("_noAttachedPanels" in  props) {
 				console.log("_noAttachedPanels");
-				if (this.singleOpen && !this._selectedChild && this._panelList.length > 0) {
-					this._selectedChild = this._panelList[0];
-				}
-				if (this._selectedChild && this._selectedChild.attached) {
-					this.show(this._selectedChild/*, noTransition*/);
-				}
+				this.showOpenPanels();
 			}
 		},
 
