@@ -19,15 +19,12 @@
 			require([
 				"deliteful/Store",
 				"deliteful/Panel",
-				"delite/theme!delite/themes/{{theme}}/global.css"	// page level CSS
-			], function () {
-				require([
-					"deliteful/list/List",
-					"deliteful/Accordion",
-					"requirejs-domready/domReady!"
-				], function() {
-					document.body.style.display = "";
-				})
+				"deliteful/list/List",
+				"deliteful/Accordion",
+				"delite/theme!delite/themes/{{theme}}/global.css",	// page level CSS
+				"requirejs-domready/domReady!"
+			], function() {
+				document.body.style.display = "";
 			});
 		</script>
 		<style>

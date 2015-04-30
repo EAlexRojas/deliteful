@@ -26,34 +26,17 @@ define(["dcl/dcl",
 		icon1 : "",
 		icon2 : "",
 		singleOpen: true,
-
-		//Overrides Container.getChildren method to return the panel content rather than the panels
-		getChildren: function () {
-			var children = [];
-			for (var i = 0, l = this.children.length; i < l; i++) {
-				if (this.children[i].baseClass === "d-panel") {
-					children.push(this.children[i].containerNode);
-				}
-			}
-			return children;
-		},
+		_panelList: null,
 
 		_setSelectedChildIdAttr: function (childId) {
 			var childNode = this.ownerDocument.getElementById(childId);
 			if (childNode) {
-				var node;
-				if (childNode.baseClass === "d-panel") {
-					node = childNode.containerNode;
-				} else {
-					node = childNode.parentNode;
-				}
-				node.parentNode.headerNode.checked = true;
-				if (this.attached) {
-					this.show(node);
-				} else {
-					this._pendingChild = node;
-				}
 				this._set("selectedChildId", childId);
+				if (this.attached && childNode.attached) {
+					this.show(childNode);
+				} else {
+					this._selectedChild = childNode;
+				}
 			}
 		},
 
@@ -61,50 +44,7 @@ define(["dcl/dcl",
 			if (this.singleOpen) {
 				return this._selectedChild ? this._selectedChild.id : "";
 			} else {
-				return this.selectedChildId;
-			}
-		},
-
-		_setIcon1Attr: function (icon1) {
-			for (var i = 0, l = this.children.length; i < l; i++) {
-				if (!this.children[i].headerNode.iconClass){
-					this.children[i].headerNode.iconClass = icon1;
-				}
-			}
-			this._set("icon1", icon1);
-		},
-
-		_setIcon2Attr: function (icon2) {
-			for (var i = 0, l = this.children.length; i < l; i++) {
-				if (!this.children[i].headerNode.checkedIconClass){
-					this.children[i].headerNode.checkedIconClass = icon2;
-				}
-			}
-			this._set("icon2", icon2);
-		},
-
-		_setChildrenInitialVisibility: function () {
-			this.getChildren().forEach(function (child) {
-				setVisibility(child, this.singleOpen ? child === this._selectedChild : false);
-			}, this);
-		},
-
-		attachedCallback: function () {
-			this._setChildrenInitialVisibility();
-			//var noTransition = {transition: "none"};
-			var children = this.getChildren();
-			if (this._pendingChild) {
-				this.show(this._pendingChild/*, noTransition*/);
-				this._pendingChild = null;
-			} else if (this.singleOpen && children.length > 0) {
-				children[0].parentNode.headerNode.checked = true;
-				this.show(children[0]);
-			}
-		},
-
-		preRender: function () {
-			for (var i = 0, l = this.children.length; i < l; i++) {
-				this._setupChild(this.children[i]);
+				return this._get("selectedChildId");
 			}
 		},
 
@@ -114,37 +54,88 @@ define(["dcl/dcl",
 				panel = panel.parentNode;
 			}
 			if (this.singleOpen) {
-				this.show(panel.containerNode);
+				this.show(panel);
 			} else {
 				if(panel.open) {
-					this.hide(panel.containerNode);
+					this.hide(panel);
 				} else {
-					this.show(panel.containerNode);
+					this.show(panel);
 				}
 			}
 		},
 
-		_setupChild: function (child) {
-			if (child.baseClass !== "d-panel") {
-				setVisibility(child, false); //Remove child if not a d-panel ?
-				return;
-			}
+		_setupAttachedPanel: function (child) {
 			var toggle = new ToggleButton({
-				label: child.headerNode.textContent,
-				iconClass: child.icon1,
-				checkedIconClass: child.icon2
+				label: child.label,
+				iconClass: child.icon1 || this.icon1,
+				checkedIconClass: child.icon2 || this.icon2
 			});
 			toggle.placeAt(child.headerNode, "replace");
 			toggle.on("click", this._changeHandler.bind(this));
 			child.headerNode = toggle;
+			setVisibility(child.containerNode, false);
+			child.open = false;
+			return child;
+		},
+
+		_noAttachedPanels: 0,
+
+		_setupNoAttachedPanel: function (panel) {
+			panel.parent = this;
+			this._noAttachedPanels++;
+			panel.addEventListener("customelement-attached", this._attachedlistener = function () {
+				this.removeEventListener("customelement-attached", this._attachedlistener);
+				this.parent._panelList.push(this.parent._setupAttachedPanel(this));
+				if (--this.parent._noAttachedPanels === 0) {
+					this.parent.deliver();
+				}
+			});
+		},
+
+		attachedCallback: function () {
+			// Declarative case (panels specified declaratively inside the declarative Accordion)
+			var panels = this.querySelectorAll("d-panel");
+			if (panels) {
+				for (var i = 0, l = panels.length; i < l; i++) {
+					if (!panels[i].attached) {
+						this._setupNoAttachedPanel(panels[i]);
+					} else {
+						this._panelList.push(this._setupAttachedPanel(panels[i]));
+					}
+				}
+			}
+			//If singleOpen, the default open panel is the first one
+			if (this.singleOpen && !this._selectedChild && this._panelList.length > 0) {
+				this._selectedChild = this._panelList[0];
+			}
+			//Show selectedChild if exists
+			if (this._selectedChild && this._selectedChild.attached) {
+				this.show(this._selectedChild/*, noTransition*/);
+			}
+		},
+
+		preRender: function () {
+			this._panelList = [];
+		},
+
+		refreshRendering: function(props) {
+			if ("_noAttachedPanels" in  props) {
+				console.log("_noAttachedPanels");
+				if (this.singleOpen && !this._selectedChild && this._panelList.length > 0) {
+					this._selectedChild = this._panelList[0];
+				}
+				if (this._selectedChild && this._selectedChild.attached) {
+					this.show(this._selectedChild/*, noTransition*/);
+				}
+			}
 		},
 
 		changeDisplay: function (widget, params) {
 			if (params.hide === true) {
-				setVisibility(widget, false);
-				$(widget.parentNode).removeClass("fill");
-				widget.parentNode.headerNode.checked = false;
-				widget.parentNode.open = false;
+				setVisibility(widget.containerNode, false);
+				$(widget).removeClass("fill");
+				widget.headerNode.checked = false;
+				widget.open = false;
 				//transition
 			} else {
 				if (this.singleOpen) {
@@ -152,23 +143,18 @@ define(["dcl/dcl",
 					this._selectedChild = widget;
 					if (origin !== widget) {
 						this.hide(origin);
-					} else {
-						origin.parentNode.headerNode.checked = true;
 					}
 				}
-				setVisibility(widget, true);
-				$(widget.parentNode).addClass("fill");
-				widget.parentNode.open = true;
+				setVisibility(widget.containerNode, true);
+				$(widget).addClass("fill");
+				widget.headerNode.checked = true;
+				widget.open = true;
 				//transition
 			}
 		},
 
 		show: dcl.superCall(function (sup) {
 			return function (dest, params) {
-				if (this.singleOpen && !this._selectedChild && this.children.length > 0) {
-					// The default visible child is the first one.
-					this._selectedChild = this.getChildren()[0];
-				}
 				return sup.apply(this, [dest, params]);
 			};
 		}),
