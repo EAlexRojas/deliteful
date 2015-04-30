@@ -47,17 +47,16 @@ define(["dcl/dcl",
 			var toggle = new ToggleButton({
 				label: child.label,
 				iconClass: child.icon1 || this.icon1,
-				checkedIconClass: child.icon2 || this.icon2,
-				checked: child.open
+				checkedIconClass: child.icon2 || this.icon2
 			});
 			toggle.placeAt(child.headerNode, "replace");
 			toggle.on("click", this._changeHandler.bind(this));
 			child.headerNode = toggle;
 			if (this.singleOpen && child.open) {
-				this._selectedChild = child.containerNode;
+				this._selectedChild = child;
 			}
-			setVisibility(child.containerNode, !this.singleOpen && child.open);
-			child.open = false;
+			setVisibility(child.containerNode, false);
+			child.open = !this.singleOpen && child.open;
 			return child;
 		},
 
@@ -87,29 +86,37 @@ define(["dcl/dcl",
 					}
 				}
 			}
-			//If singleOpen, the default open panel is the first one
-			if (this.singleOpen && !this._selectedChild && this._panelList.length > 0) {
-				this._selectedChild = this._panelList[0];
-			}
-			//Show selectedChild if exists
-			if (this._selectedChild && this._selectedChild.attached) {
-				this.show(this._selectedChild/*, noTransition*/);
-			}
+			this.showOpenPanels();
 		},
 
 		preRender: function () {
 			this._panelList = [];
 		},
 
-		refreshRendering: function(props) {
-			if ("_noAttachedPanels" in  props) {
-				console.log("_noAttachedPanels");
-				if (this.singleOpen && !this._selectedChild && this._panelList.length > 0) {
+		showOpenPanels: function () {
+			if (this.singleOpen) {
+				//If singleOpen, the default open panel is the first one
+				if (!this._selectedChild && this._panelList.length > 0) {
 					this._selectedChild = this._panelList[0];
 				}
+				//Show selectedChild if exists
 				if (this._selectedChild && this._selectedChild.attached) {
 					this.show(this._selectedChild/*, noTransition*/);
 				}
+			} else {
+				//Show all open panels if !singleOpen
+				this._panelList.forEach(function (panel) {
+					if (panel.open) {
+						this.show(panel);
+					}
+				}, this);
+			}
+		},
+
+		refreshRendering: function(props) {
+			if ("_noAttachedPanels" in  props) {
+				console.log("_noAttachedPanels");
+				this.showOpenPanels();
 			}
 		},
 
