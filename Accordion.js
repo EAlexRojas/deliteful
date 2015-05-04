@@ -50,7 +50,8 @@ define(["dcl/dcl",
 
 		_changeHandler: function(event) {
 			var panel = event.target.parentNode;
-			if (panel.baseClass !== "d-panel") {
+			//Case when th event is fired by the label or the icon
+			if (panel.nodeName.toLowerCase() !== "d-panel") {
 				panel = panel.parentNode;
 			}
 			if (this.singleOpen) {
@@ -163,6 +164,12 @@ define(["dcl/dcl",
 				var args = {hide: true};
 				dcl.mix(args, params || {});
 				return this.changeDisplay(dest, args);
+			};
+		}),
+
+		addChild: dcl.superCall(function (sup) {
+			return function (node, insertIndex) {
+				return sup.apply(this, [this._setupAttachedPanel(node), insertIndex]);
 			};
 		})
 
