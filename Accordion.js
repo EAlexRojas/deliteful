@@ -33,7 +33,7 @@ define(["dcl/dcl",
 			var childNode = this.ownerDocument.getElementById(childId);
 			if (childNode) {
 				this._set("selectedChildId", childId);
-				if (childNode.nodeName.toLocaleLowerCase() === "d-panel" && this.attached && childNode.attached) {
+				if (childNode.nodeName.toLowerCase() === "d-panel" && this.attached && childNode.attached) {
 					this.show(childNode);
 				} else {
 					this._selectedChild = childNode;
@@ -133,7 +133,7 @@ define(["dcl/dcl",
 			//Show selectedChild if exists
 			if (this._selectedChild) {
 				//Declarative case, where selectedChild wasn't a panel
-				if (this._selectedChild.nodeName.toLocaleLowerCase() !== "d-panel" && !this._selectedChild.parentNode) {
+				if (this._selectedChild.nodeName.toLowerCase() !== "d-panel" && !this._selectedChild.parentNode) {
 					this._selectedChild = this.ownerDocument.getElementById("panel_" + this._selectedChild.id);
 				}
 				if (this._selectedChild.attached) {
@@ -187,6 +187,12 @@ define(["dcl/dcl",
 				var args = {hide: true};
 				dcl.mix(args, params || {});
 				return this.changeDisplay(dest, args);
+			};
+		}),
+
+		addChild: dcl.superCall(function (sup) {
+			return function (node, insertIndex) {
+				return sup.apply(this, [this._setupAttachedPanel(node), insertIndex]);
 			};
 		})
 
