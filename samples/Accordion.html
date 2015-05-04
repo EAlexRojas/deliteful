@@ -1,4 +1,5 @@
-<html>
+<!doctype html>
+<html id="html">
 	<head>
 		<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
 		<meta name="viewport"
@@ -84,7 +85,7 @@
 		</d-store>
 		<d-linear-layout vertical="false">
 			<div style="width:30%;">
-				<d-linear-layout id="left" style="width: 100%; height: 100%;">
+				<d-linear-layout id="left" style="position: absolute; width: 100%; height: 100%;">
 					<d-accordion id="accordion" singleOpen="true" selectedChildId="third" icon1="icon-plus"
 								 icon2="icon-minus">
 						<d-panel label="First Header" id="first" icon1="icon-right" icon2="icon-down">
@@ -122,7 +123,7 @@
 				</d-linear-layout>
 			</div>
 			<div class="fill">
-				<d-linear-layout id="center" style="width: 100%; height: 100%">
+				<d-linear-layout id="center" style="position: absolute; width: 100%; height: 100%">
 					<h2>Title</h2>
 					<p>
 						Content Page
@@ -130,7 +131,7 @@
 				</d-linear-layout>
 			</div>
 			<div style="width:30%;">
-				<d-linear-layout id="right" style="width: 100%; height: 100%">
+				<d-linear-layout id="right" style="position: absolute; width: 100%; height: 100%">
 				</d-linear-layout>
 			</div>
 		</d-linear-layout>
