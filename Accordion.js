@@ -82,13 +82,13 @@ define(["dcl/dcl",
 		_noAttachedPanels: 0,
 
 		_setupNoAttachedPanel: function (panel) {
-			panel.parent = this;
+			panel.accordion = this;
 			this._noAttachedPanels++;
 			panel.addEventListener("customelement-attached", this._attachedlistener = function () {
 				this.removeEventListener("customelement-attached", this._attachedlistener);
-				this.parent._panelList.push(this.parent._setupAttachedPanel(this));
-				if (--this.parent._noAttachedPanels === 0) {
-					this.parent.deliver();
+				this.accordion._panelList.push(this.accordion._setupAttachedPanel(this));
+				if (--this.accordion._noAttachedPanels === 0) {
+					this.accordion.deliver();
 				}
 			});
 		},
