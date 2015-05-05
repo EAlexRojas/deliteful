@@ -8,6 +8,8 @@
 
 		<title>Accordion</title>
 
+		<link rel="stylesheet" href="../../delite/themes/defaultapp.css">
+
 		<script src="../../requirejs/require.js"></script>
 		<script type="text/javascript">
 			require.config({
@@ -22,6 +24,7 @@
 				"deliteful/LinearLayout",
 				"deliteful/Store",
 				"deliteful/list/List",
+				"deliteful/Button",
 				"delite/theme!delite/themes/{{theme}}/global.css",	// page level CSS
 				"requirejs-domready/domReady!"
 			], function(Accordion, Panel) {
@@ -89,18 +92,19 @@
 					<d-accordion id="accordion" singleOpen="true" selectedChildId="third" icon1="icon-plus"
 								 icon2="icon-minus">
 						<d-panel label="First Header" id="first" icon1="icon-right" icon2="icon-down">
-							First Content
+							<h1>First Content</h1>
+							<button is="d-button" style="width: 90%; margin:5%">A Button</button>
 						</d-panel>
 						<div label="Second Header" id="second" icon1="icon-right" icon2="icon-down">
-							Second Content
+							<h2>Second Content</h2>
 						</div>
 						<div label="Third Header" id="third">
-							Third content
-							<ui>
+							<h3>Third content</h3>
+							<ul>
 								<li>One</li>
 								<li>Two</li>
 								<li>...</li>
-							</ui>
+							</ul>
 						</div>
 						<div>
 							<p>
