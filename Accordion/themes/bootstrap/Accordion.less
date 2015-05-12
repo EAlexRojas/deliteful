@@ -2,7 +2,7 @@
 .d-accordion {
   height: 100%;
   .box-sizing(border-box);
-  position: relative; // Enables clipping
+  position: relative;
   overflow: auto;
   .display-flex();
   align-items: stretch;
@@ -15,7 +15,8 @@
   .display-flex();
   align-items: stretch;
   .flex-direction-column();
-  overflow: auto;
+  overflow: hidden; /*To avoid scroll bar on button during animation*/
+  min-height: 35px; /*(Toggle button height)font size + padding + border*/
 }
 
 .d-accordion > .d-panel:first-child {
@@ -50,7 +51,16 @@
   color: @component-active-color;
 }
 
-.d-accordion > .d-panel > .-d-panel-content,
-.fill {
+.d-accordion-open-panel {
   .flex(1);
+}
+
+.d-accordion-closed-panel {
+  .flex(0.0001);
+}
+
+.-d-accordion-animate {
+  transition-property: flex;
+  transition-timing-function: linear;
+  transition-duration: .3s;
 }

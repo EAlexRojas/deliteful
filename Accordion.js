@@ -19,6 +19,20 @@ define(["dcl/dcl",
 		}
 	}
 
+	function listenTransitionEvents(element, callback) {
+		var events = ["transitionend", "webkitTransitionEnd"];
+		events.forEach(function (event) {
+			var tmp = {};
+			var listener = (function (el, ev, d) {
+				return function () {
+					callback(el, ev);
+					d.handler.remove();
+				};
+			})(element, event, tmp);
+			tmp.handler = element.on(event, listener);
+		});
+	}
+
 	var Accordion = dcl(DisplayContainer, {
 
 		baseClass: "d-accordion",
@@ -26,6 +40,7 @@ define(["dcl/dcl",
 		icon1 : "",
 		icon2 : "",
 		singleOpen: true,
+		animate: true,
 		_panelList: null,
 
 		_setSelectedChildIdAttr: function (childId) {
@@ -48,9 +63,11 @@ define(["dcl/dcl",
 			}
 		},
 
+		_numOpenPanels: 0,
+
 		_changeHandler: function(event) {
 			var panel = event.target.parentNode;
-			//Case when th event is fired by the label or the icon
+			//Case when the event is fired by the label or the icon
 			if (panel.nodeName.toLowerCase() !== "d-panel") {
 				panel = panel.parentNode;
 			}
@@ -58,25 +75,30 @@ define(["dcl/dcl",
 				this.show(panel);
 			} else {
 				if(panel.open) {
-					this.hide(panel);
+					if(this._numOpenPanels > 1) {
+						this.hide(panel);
+					} else {
+						panel.headerNode.checked = true;
+					}
 				} else {
 					this.show(panel);
 				}
 			}
 		},
 
-		_setupAttachedPanel: function (child) {
+		_setupAttachedPanel: function (panel) {
 			var toggle = new ToggleButton({
-				label: child.label,
-				iconClass: child.icon1 || this.icon1,
-				checkedIconClass: child.icon2 || this.icon2
+				label: panel.label,
+				iconClass: panel.icon1 || this.icon1,
+				checkedIconClass: panel.icon2 || this.icon2
 			});
-			toggle.placeAt(child.headerNode, "replace");
+			toggle.placeAt(panel.headerNode, "replace");
 			toggle.on("click", this._changeHandler.bind(this));
-			child.headerNode = toggle;
-			setVisibility(child.containerNode, false);
-			child.open = false;
-			return child;
+			panel.headerNode = toggle;
+			setVisibility(panel.containerNode, false);
+			panel.open = false;
+			$(panel).addClass("d-accordion-closed-panel");
+			return panel;
 		},
 
 		_noAttachedPanels: 0,
@@ -105,38 +127,57 @@ define(["dcl/dcl",
 					}
 				}
 			}
-			this.showOpenPanels();
+			this._showOpenPanel();
 		},
 
 		preRender: function () {
 			this._panelList = [];
 		},
 
-		showOpenPanels: function () {
+		_showOpenPanel: function () {
 			//If singleOpen, the default open panel is the first one
-			if (this.singleOpen && !this._selectedChild && this._panelList.length > 0) {
+			if (/*this.singleOpen &&*/ !this._selectedChild && this._panelList.length > 0) {
 				this._selectedChild = this._panelList[0];
 			}
 			//Show selectedChild if exists
 			if (this._selectedChild && this._selectedChild.attached) {
-				this.show(this._selectedChild/*, noTransition*/);
+				this.show(this._selectedChild);
 			}
 		},
 
 		refreshRendering: function(props) {
 			if ("_noAttachedPanels" in  props) {
 				console.log("_noAttachedPanels");
-				this.showOpenPanels();
+				this._showOpenPanel();
+			}
+		},
+
+		_doTransition: function(panel, params) {
+			if (params.hide) {
+				$(panel).toggleClass("d-accordion-animate", this.animate);
+				$(panel).removeClass("d-accordion-open-panel").addClass("d-accordion-closed-panel");
+				if (this.animate) {
+					listenTransitionEvents(panel, function (element) {
+						setVisibility(element.containerNode, false);
+					});
+				} else {
+					setVisibility(panel.containerNode, false);
+				}
+			} else {
+				$(panel).toggleClass("d-accordion-animate", this.animate);
+				$(panel).removeClass("d-accordion-closed-panel").addClass("d-accordion-open-panel");
+				if (this.animate) {
+					listenTransitionEvents(panel, function (element) {});
+				}
+				setVisibility(panel.containerNode, true);
 			}
 		},
 
 		changeDisplay: function (widget, params) {
-			if (params.hide === true) {
-				setVisibility(widget.containerNode, false);
-				$(widget).removeClass("fill");
-				widget.headerNode.checked = false;
+			if (params.hide) {
 				widget.open = false;
-				//transition
+				widget.headerNode.checked = false;
+				this._numOpenPanels--;
 			} else {
 				if (this.singleOpen) {
 					var origin = this._selectedChild;
@@ -145,12 +186,11 @@ define(["dcl/dcl",
 						this.hide(origin);
 					}
 				}
-				setVisibility(widget.containerNode, true);
-				$(widget).addClass("fill");
-				widget.headerNode.checked = true;
 				widget.open = true;
-				//transition
+				widget.headerNode.checked = true;
+				this._numOpenPanels++;
 			}
+			this._doTransition(widget, params);
 		},
 
 		show: dcl.superCall(function (sup) {

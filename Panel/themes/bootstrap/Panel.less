@@ -6,6 +6,9 @@
   border: 1px solid;
   .border-radius(@panel-border-radius);
   .box-shadow(0 1px 1px rgba(0,0,0,.05));
+  .display-flex();
+  align-items: stretch;
+  .flex-direction-column();
 
   .-d-panel-header {
     padding: 10px 15px;
@@ -30,6 +33,7 @@
   display: block;
   position: relative;
   overflow: auto;
+  .flex(1);
 }
 
 .d-panel {
