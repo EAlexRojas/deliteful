@@ -1,4 +1,6 @@
 define(["dcl/dcl",
+	"decor/sniff",
+	"requirejs-dplugins/Promise!",
 	"delite/register",
 	"dpointer/events",
 	"requirejs-dplugins/jquery!attributes/classes",
@@ -6,7 +8,7 @@ define(["dcl/dcl",
 	"./Panel",
 	"./ToggleButton",
 	"delite/theme!./Accordion/themes/{{theme}}/Accordion.css"
-], function (dcl, register, events, $, DisplayContainer, Panel, ToggleButton) {
+], function (dcl, has, Promise, register, events, $, DisplayContainer, Panel, ToggleButton) {
 
 	function setVisibility(node, val) {
 		if (node) {
@@ -20,13 +22,28 @@ define(["dcl/dcl",
 		}
 	}
 
+	function listenAnimationEvents(element, callback) {
+		var events = ["animationend", "webkitAnimationEnd", "MSAnimationEnd"];
+		events.forEach(function (event) {
+			var tmp = {};
+			var listener = (function (el, ev, d) {
+				return function () {
+					callback(el, ev);
+					d.handler.remove();
+				};
+			})(element, event, tmp);
+			tmp.handler = element.on(event, listener);
+		});
+	}
+
 	var Accordion = dcl(DisplayContainer, {
 
 		baseClass: "d-accordion",
 		selectedChildId : "",
-		icon1 : "",
-		icon2 : "",
+		openIconClass : "",
+		closedIconClass : "",
 		singleOpen: true,
+		animate: true,
 		_panelList: null,
 
 		_setSelectedChildIdAttr: function (childId) {
@@ -49,9 +66,12 @@ define(["dcl/dcl",
 			}
 		},
 
+		_numOpenPanels: 0,
+
 		_changeHandler: function(event) {
 			var panel = event.target.parentNode;
-			if (panel.baseClass !== "d-panel") {
+			//Case when the event is fired by the label or the icon
+			if (panel.nodeName.toLowerCase() !== "d-panel") {
 				panel = panel.parentNode;
 			}
 			if (this.singleOpen) {
@@ -70,16 +90,16 @@ define(["dcl/dcl",
 			if (panel.baseClass !== "d-panel") {
 				panel = new Panel({
 					label: child.getAttribute("label") || "Default header",
-					icon1: child.getAttribute("icon1"),
-					icon2: child.getAttribute("icon2")
+					iconClass: child.getAttribute("iconClass"),
+					closedIconClass: child.getAttribute("closedIconClass")
 				});
 				panel.id = "panel_" + child.id;
 				panel.containerNode.appendChild(child.cloneNode(true));
 			}
 			var toggle = new ToggleButton({
 				label: panel.label,
-				iconClass: panel.icon1 || this.icon1,
-				checkedIconClass: panel.icon2 || this.icon2
+				iconClass: panel.closedIconClass || this.closedIconClass,
+				checkedIconClass: panel.iconClass || this.openIconClass
 			});
 			toggle.placeAt(panel.headerNode, "replace");
 			toggle.on("click", this._changeHandler.bind(this));
@@ -118,16 +138,16 @@ define(["dcl/dcl",
 					panel.placeAt(this.children[i], "replace");
 				}
 			}
-			this.showOpenPanels();
+			this._showOpenPanel();
 		},
 
 		preRender: function () {
 			this._panelList = [];
 		},
 
-		showOpenPanels: function () {
-			//If singleOpen, the default open panel is the first one
-			if (this.singleOpen && !this._selectedChild && this._panelList.length > 0) {
+		_showOpenPanel: function () {
+			//The default open panel is the first one
+			if ( !this._selectedChild && this._panelList.length > 0) {
 				this._selectedChild = this._panelList[0];
 			}
 			//Show selectedChild if exists
@@ -142,38 +162,97 @@ define(["dcl/dcl",
 			}
 		},
 
-		preRender: function () {
-			this._panelList = [];
-		},
-
 		refreshRendering: function(props) {
 			if ("_noAttachedPanels" in  props) {
 				console.log("_noAttachedPanels");
-				this.showOpenPanels();
+				this._showOpenPanel();
+			}
+		},
+
+		_supportTransition: function () {
+			//Transition events are broken if the widget is not visible
+			var parent = this;
+			while (parent && parent.style.display !== "none" && parent !== this.ownerDocument.documentElement) {
+				parent = parent.parentNode;
+			}
+			var visible =  parent === this.ownerDocument.documentElement;
+
+			//Flexbox animation is not supported on IE 11 and before
+			return visible && (has("ie") ? has("ie") > 11 : true);
+		},
+
+		_doTransition: function(panel, params) {
+			if (params.hide) {
+				if (this.animate && this._supportTransition()) {
+					//To avoid hiding the panel title bar on animation
+					panel.style.minHeight = window.getComputedStyle(panel.headerNode).getPropertyValue("height");
+					$(panel).addClass("d-accordion-closeAnimation");
+					$(panel).removeClass("d-accordion-open-panel");
+					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
+					listenAnimationEvents(panel, function (element) {
+						setVisibility(element.containerNode, false);
+						$(element).removeClass("d-accordion-closeAnimation");
+						panel.containerNode.style.overflow = "auto";
+						panel.style.minHeight = "";
+					});
+				} else {
+					$(panel).removeClass("d-accordion-open-panel");
+					setVisibility(panel.containerNode, false);
+				}
+			} else {
+				if (this.animate && this._supportTransition()) {
+					//To avoid hiding the panel title bar on animation
+					panel.style.minHeight = window.getComputedStyle(panel.headerNode).getPropertyValue("height");
+					$(panel).addClass("d-accordion-openAnimation");
+					setVisibility(panel.containerNode, true);
+					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
+					listenAnimationEvents(panel, function (element) {
+						$(panel).addClass("d-accordion-open-panel");
+						$(element).removeClass("d-accordion-openAnimation");
+						panel.containerNode.style.overflow = "auto";
+						panel.style.minHeight = "";
+					});
+				} else {
+					$(panel).addClass("d-accordion-open-panel");
+					setVisibility(panel.containerNode, true);
+				}
 			}
 		},
 
 		changeDisplay: function (widget, params) {
-			if (params.hide === true) {
-				setVisibility(widget.containerNode, false);
-				$(widget).removeClass("fill");
-				widget.headerNode.checked = false;
-				widget.open = false;
-				//transition
-			} else {
-				if (this.singleOpen) {
-					var origin = this._selectedChild;
-					this._selectedChild = widget;
-					if (origin !== widget) {
-						this.hide(origin);
+			var valid = true;
+			if (params.hide) {
+				if (widget.open === true) {
+					if (this._numOpenPanels > 1) {
+						this._numOpenPanels--;
+						widget.open = false;
+						widget.headerNode.checked = false;
+					} else {
+						widget.headerNode.checked = true;
+						valid = false;
 					}
+				} else {
+					widget.headerNode.checked = false;
+					valid = false;
 				}
-				setVisibility(widget.containerNode, true);
-				$(widget).addClass("fill");
-				widget.headerNode.checked = true;
-				widget.open = true;
-				//transition
+			} else {
+				if (widget.open === false) {
+					this._numOpenPanels++;
+					if (this.singleOpen) {
+						var origin = this._selectedChild;
+						this._selectedChild = widget;
+						if (origin !== widget) {
+							this.hide(origin);
+						}
+					}
+					widget.open = true;
+					widget.headerNode.checked = true;
+				} else {
+					widget.headerNode.checked = true;
+					valid = false;
+				}
 			}
+			return valid ? this._doTransition(widget, params) : Promise.resolve(true);
 		},
 
 		show: dcl.superCall(function (sup) {

@@ -7,7 +7,7 @@
   .border-radius(@panel-border-radius);
   .box-shadow(0 1px 1px rgba(0,0,0,.05));
 
-  .-d-panel-header {
+  .d-panel-header {
     padding: 10px 15px;
     font-weight: bold;
     border-bottom: 1px solid;
@@ -18,14 +18,14 @@
 
 .d-panel-variant(@heading-color, @text-color, @border-color) {
   border-color: @border-color;
-  .-d-panel-header {
+  .d-panel-header {
     border-color: @border-color;
     color: @text-color;
     background-color: @heading-color;
   }
 }
 
-.-d-panel-content {
+.d-panel-content {
   .box-sizing(border-box);
   display: block;
   position: relative;

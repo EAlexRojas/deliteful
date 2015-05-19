@@ -1,3 +1,4 @@
+/** @module deliteful/Panel */
 define(["dcl/dcl",
 	"delite/register",
 	"delite/Container",
@@ -5,11 +6,50 @@ define(["dcl/dcl",
     "delite/theme!./Panel/themes/{{theme}}/Panel.css"
 ], function (dcl, register, Container, template) {
 
-	var Panel = dcl(Container, {
+	/**
+	 * A container widget with a Title Bar on top, that uses CSS3 Flexible box to
+	 * always show the title and fill the available space with its children.
+	 *
+	 * @class module:deliteful/Panel
+	 * @augments module:delite/Container
+	 * @example:
+	 * <d-panel id="panel" label="Title">
+	 *   <div>...</div>
+	 *   <div>...</div>
+	 * </d-panel>
+	 */
+	var Panel = dcl(Container, /** @lends module:deliteful/Panel# */ {
+
+		/**
+		 * The name of the CSS class of this widget.
+		 * @member {string}
+		 * @default "d-panel"
+		 */
 		baseClass: "d-panel",
+
+		/**
+		 * The label to be displayed in the panel header.
+		 * @member {string}
+		 * @default ""
+		 */
 		label: "",
-		icon1: "",
-		icon2: "", //When used inside an accordion
+
+		/**
+		 * The name of the CSS class to apply to DOMNode in panel header to make it display an icon.
+		 * If the panel is used inside an Accordion, this icon is displayed when panel is open.
+		 * @member {string}
+		 * @default ""
+		 */
+		iconClass: "",
+
+		/**
+		 * If the panel is used inside an Accordion:
+		 * The name of the CSS class to apply to DOMNode in panel header to make it display an icon when panel is
+		 * closed.
+		 * @member {string}
+		 * @default ""
+		 */
+		closedIconClass: "",
 		template: template
 	});
 
