@@ -6,19 +6,19 @@ title: deliteful/Accordion
 # deliteful/Accordion
 
 ``deliteful/Accordion`` is a layout container that display a vertically stacked list of Panels whose titles are all
-visible, but only one or at least one panel's content is visible at a time (depending on the singleOpen property value).
-Once the panels are in an accordion, they become collapsible Panels by replacing their headers by ToggleButtons.
+visible, but only one or at least one panel's content is visible at a time (depending on the singleOpen property value).  
+Once the panels are in an accordion, they become collapsible Panels by replacing their headers by ToggleButtons.  
 When a panel is open, it fills all the available space with its content.
 
 ![](image)
 
 ##### Table of Contents
-[Element Instantiation](#instantiation)
-[Element Configuration](#configuration)
-[Element Styling](#styling)
-[User Interactions](#interactions)
-[Element Events](#events)
-[Enterprise Use](#enterprise)
+[Element Instantiation](#instantiation)  
+[Element Configuration](#configuration)  
+[Element Styling](#styling)  
+[User Interactions](#interactions)  
+[Element Events](#events)  
+[Enterprise Use](#enterprise)  
 
 <a name="instantiation"></a>
 ## Element Instantiation
@@ -110,9 +110,9 @@ show/hide (respectively) the content of the panel by:
 
 * Clicking it using a mouse,
 * Tapping it on a touch screen device,
-* Pressing the SPACE key when the button has keyboard focus.
+* Pressing the SPACE/Enter key when the button has keyboard focus.
 
-Note: On `singleOpen` mode, clicking, tapping or pressing the SPACE key on the button of the open panel, doesn't has any effect.
+Note: On `singleOpen` mode, clicking, tapping or pressing the SPACE/Enter key on the button of the open panel, doesn't has any effect.
 Same thing on `multipleOpen` mode when there's only one open panel. In both case, in order to keep at least one panel open at a time.
 
 <a name="events"></a>
@@ -127,9 +127,9 @@ For more informations, see [`delite/DisplayContainer`](/delite/docs/master/Displ
 
 |type|status|comment|
 |----|------|-------|
-|Keyboard|ok|ok|
-|Visual Formatting|ok||
-|Screen Reader||Not tested yet|
+|Keyboard|partial|Panels can be open/closed by pressing the SPACE/Enter key when its Toggle Button has keyboard focus|
+|Visual Formatting|||
+|Screen Reader|||
 
 ### Globalization
 
