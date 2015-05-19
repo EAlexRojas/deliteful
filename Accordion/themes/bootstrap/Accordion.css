@@ -23,6 +23,7 @@
   border-radius: 0;
   border-bottom: none;
   position: relative;
+  overflow: hidden;
 }
 .d-accordion > .d-panel:first-child {
   border-top-left-radius: 4px;
