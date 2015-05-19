@@ -1,11 +1,14 @@
+/** @module deliteful/Accordion */
 define(["dcl/dcl",
+	"decor/sniff",
+	"requirejs-dplugins/Promise!",
 	"delite/register",
 	"dpointer/events",
 	"requirejs-dplugins/jquery!attributes/classes",
 	"delite/DisplayContainer",
 	"./ToggleButton",
 	"delite/theme!./Accordion/themes/{{theme}}/Accordion.css"
-], function (dcl, register, events, $, DisplayContainer, ToggleButton) {
+], function (dcl, has, Promise, register, events, $, DisplayContainer, ToggleButton) {
 
 	function setVisibility(node, val) {
 		if (node) {
@@ -19,8 +22,8 @@ define(["dcl/dcl",
 		}
 	}
 
-	function listenTransitionEvents(element, callback) {
-		var events = ["transitionend", "webkitTransitionEnd"];
+	function listenAnimationEvents(element, callback) {
+		var events = ["animationend", "webkitAnimationEnd", "MSAnimationEnd"];
 		events.forEach(function (event) {
 			var tmp = {};
 			var listener = (function (el, ev, d) {
@@ -33,14 +36,72 @@ define(["dcl/dcl",
 		});
 	}
 
-	var Accordion = dcl(DisplayContainer, {
+	/**
+	 * A layout container that display a vertically stacked list of Panels whose titles are all visible, but only one
+	 * or at least one panel's content is visible at a time (depending on the singleOpen property value).
+	 *
+	 * Once the panels are in an accordion, they become collapsible Panels by replacing their headers by ToggleButtons.
+	 *
+	 * When a panel is open, it fills all the available space with its content.
+	 *
+	 * @example:
+	 * <d-accordion id="accordion" selectedChildId="panel1">
+	 *     <d-panel id="p&nel1">...</d-panel>
+	 *     <d-panel id="panel2">...</d-panel>
+	 *     <d-panel id="panel3">...</d-panel>
+	 * </d-accordion>
+	 * @class module:deliteful/Accordion
+	 * @augments module:delite/DisplayContainer
+	 */
+	var Accordion = dcl(DisplayContainer, /** @lends module:deliteful/Accordion# */ {
 
+		/**
+		 * The name of the CSS class of this widget.
+		 * @member {string}
+		 * @default "d-accordion"
+		 */
 		baseClass: "d-accordion",
+
+		/**
+		 * The id of the panel to be open at initialization.
+		 * If not specified, the default open panel is the first one.
+		 * @member {string}
+		 * @default ""
+		 */
 		selectedChildId : "",
-		icon1 : "",
-		icon2 : "",
+
+		/**
+		 * If true, only one panel is open at a time.
+		 * If false, several panels can be open at a time, but there's always at least one open.
+		 * @member {boolean}
+		 * @default true
+		 */
 		singleOpen: true,
+
+		/**
+		 * If true, animation is used when a panel is opened or closed.
+		 * @member {boolean}
+		 * @default true
+		 */
 		animate: true,
+
+		/**
+		 * The default CSS class to apply to DOMNode in children headers to make them display an icon when they are
+		 * open. If a child panel has its own iconClass specified, that value is used on that panel.
+		 * @member {string}
+		 * @default ""
+		 */
+		openIconClass : "",
+
+		/**
+		 * The default CSS class to apply to DOMNode in children headers to make them display an icon when they are
+		 * closed. If a child panel has its own closedIconClass specified, that value is used on that panel.
+		 * @member {string}
+		 * @default ""
+		 */
+		closedIconClass : "",
+
+
 		_panelList: null,
 
 		_setSelectedChildIdAttr: function (childId) {
@@ -75,11 +136,7 @@ define(["dcl/dcl",
 				this.show(panel);
 			} else {
 				if(panel.open) {
-					if(this._numOpenPanels > 1) {
-						this.hide(panel);
-					} else {
-						panel.headerNode.checked = true;
-					}
+					this.hide(panel);
 				} else {
 					this.show(panel);
 				}
@@ -89,15 +146,14 @@ define(["dcl/dcl",
 		_setupAttachedPanel: function (panel) {
 			var toggle = new ToggleButton({
 				label: panel.label,
-				iconClass: panel.icon1 || this.icon1,
-				checkedIconClass: panel.icon2 || this.icon2
+				iconClass: panel.closedIconClass || this.closedIconClass,
+				checkedIconClass: panel.iconClass || this.openIconClass
 			});
 			toggle.placeAt(panel.headerNode, "replace");
 			toggle.on("click", this._changeHandler.bind(this));
 			panel.headerNode = toggle;
 			setVisibility(panel.containerNode, false);
 			panel.open = false;
-			$(panel).addClass("d-accordion-closed-panel");
 			return panel;
 		},
 
@@ -135,8 +191,8 @@ define(["dcl/dcl",
 		},
 
 		_showOpenPanel: function () {
-			//If singleOpen, the default open panel is the first one
-			if (/*this.singleOpen &&*/ !this._selectedChild && this._panelList.length > 0) {
+			//The default open panel is the first one
+			if ( !this._selectedChild && this._panelList.length > 0) {
 				this._selectedChild = this._panelList[0];
 			}
 			//Show selectedChild if exists
@@ -152,45 +208,90 @@ define(["dcl/dcl",
 			}
 		},
 
+		_supportTransition: function () {
+			//Transition events are broken if the widget is not visible
+			var parent = this;
+			while (parent && parent.style.display !== "none" && parent !== this.ownerDocument.documentElement) {
+				parent = parent.parentNode;
+			}
+			var visible =  parent === this.ownerDocument.documentElement;
+
+			//Flexbox animation is not supported on IE 11 and before
+			return visible && (has("ie") ? has("ie") > 11 : true);
+		},
+
 		_doTransition: function(panel, params) {
 			if (params.hide) {
-				$(panel).toggleClass("d-accordion-animate", this.animate);
-				$(panel).removeClass("d-accordion-open-panel").addClass("d-accordion-closed-panel");
-				if (this.animate) {
-					listenTransitionEvents(panel, function (element) {
+				if (this.animate && this._supportTransition()) {
+					//To avoid hiding the panel title bar on animation
+					panel.style.minHeight = window.getComputedStyle(panel.headerNode).getPropertyValue("height");
+					$(panel).addClass("d-accordion-closeAnimation");
+					$(panel).removeClass("d-accordion-open-panel");
+					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
+					listenAnimationEvents(panel, function (element) {
 						setVisibility(element.containerNode, false);
+						$(element).removeClass("d-accordion-closeAnimation");
+						panel.containerNode.style.overflow = "auto";
+						panel.style.minHeight = "";
 					});
 				} else {
+					$(panel).removeClass("d-accordion-open-panel");
 					setVisibility(panel.containerNode, false);
 				}
 			} else {
-				$(panel).toggleClass("d-accordion-animate", this.animate);
-				$(panel).removeClass("d-accordion-closed-panel").addClass("d-accordion-open-panel");
-				if (this.animate) {
-					listenTransitionEvents(panel, function (element) {});
+				if (this.animate && this._supportTransition()) {
+					//To avoid hiding the panel title bar on animation
+					panel.style.minHeight = window.getComputedStyle(panel.headerNode).getPropertyValue("height");
+					$(panel).addClass("d-accordion-openAnimation");
+					setVisibility(panel.containerNode, true);
+					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
+					listenAnimationEvents(panel, function (element) {
+						$(panel).addClass("d-accordion-open-panel");
+						$(element).removeClass("d-accordion-openAnimation");
+						panel.containerNode.style.overflow = "auto";
+						panel.style.minHeight = "";
+					});
+				} else {
+					$(panel).addClass("d-accordion-open-panel");
+					setVisibility(panel.containerNode, true);
 				}
-				setVisibility(panel.containerNode, true);
 			}
 		},
 
 		changeDisplay: function (widget, params) {
+			var valid = true;
 			if (params.hide) {
-				widget.open = false;
-				widget.headerNode.checked = false;
-				this._numOpenPanels--;
-			} else {
-				if (this.singleOpen) {
-					var origin = this._selectedChild;
-					this._selectedChild = widget;
-					if (origin !== widget) {
-						this.hide(origin);
+				if (widget.open === true) {
+					if (this._numOpenPanels > 1) {
+						this._numOpenPanels--;
+						widget.open = false;
+						widget.headerNode.checked = false;
+					} else {
+						widget.headerNode.checked = true;
+						valid = false;
 					}
+				} else {
+					widget.headerNode.checked = false;
+					valid = false;
 				}
-				widget.open = true;
-				widget.headerNode.checked = true;
-				this._numOpenPanels++;
+			} else {
+				if (widget.open === false) {
+					this._numOpenPanels++;
+					if (this.singleOpen) {
+						var origin = this._selectedChild;
+						this._selectedChild = widget;
+						if (origin !== widget) {
+							this.hide(origin);
+						}
+					}
+					widget.open = true;
+					widget.headerNode.checked = true;
+				} else {
+					widget.headerNode.checked = true;
+					valid = false;
+				}
 			}
-			this._doTransition(widget, params);
+			return valid ? this._doTransition(widget, params) : Promise.resolve(true);
 		},
 
 		show: dcl.superCall(function (sup) {

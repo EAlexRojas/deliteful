@@ -23,20 +23,6 @@
   border-radius: 0;
   border-bottom: none;
   position: relative;
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  align-items: stretch;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  -webkit-box-orient: vertical;
-  -moz-box-orient: vertical;
-  -ms-box-orient: vertical;
-  flex-direction: column;
-  overflow: hidden; /*To avoid scroll bar on button*/
-  min-height: 35px; /*(Toggle button height)font size + padding + border*/
 }
 .d-accordion > .d-panel:first-child {
   border-top-left-radius: 4px;
@@ -67,21 +53,41 @@
   color: #ffffff;
 }
 .d-accordion-open-panel {
-	-webkit-box-flex: 1;
-	-moz-box-flex: 1;
-	-webkit-flex: 1;
-	-ms-flex: 1;
-	flex: 1;
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  -webkit-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
 }
-.d-accordion-closed-panel {
-	-webkit-box-flex: 0.0001;
-	-moz-box-flex: 0.0001;
-	-webkit-flex: 0.0001;
-	-ms-flex: 0.0001;
-	flex: 0.0001;
+@keyframes d-accordion-openAnimation {
+  from {flex: 0.0001;}
+  to {flex: 1;}
 }
-.d-accordion-animate {
-	transition-property: flex;
-	transition-timing-function: linear;
-	transition-duration: .3s;
+@-webkit-keyframes d-accordion-openAnimation {
+  from {flex: 0.0001;}
+  to {flex: 1;}
+}
+.d-accordion-openAnimation {
+  animation-name: d-accordion-openAnimation;
+  animation-duration: .3s;
+  animation-fill-mode: forwards;
+  -webkit-animation-name: d-accordion-openAnimation;
+  -webkit-animation-duration: .3s;
+  -webkit-animation-fill-mode: forwards;
+}
+@keyframes d-accordion-closeAnimation {
+  from {flex: 1;}
+  to {flex: 0.0001;}
+}
+@-webkit-keyframes d-accordion-closeAnimation {
+  from {flex: 1;}
+  to {flex: 0.0001;}
+}
+.d-accordion-closeAnimation {
+  animation-name: d-accordion-closeAnimation;
+  animation-duration: .3s;
+  animation-fill-mode: forwards;
+  -webkit-animation-name: d-accordion-closeAnimation;
+  -webkit-animation-duration: .3s;
+  -webkit-animation-fill-mode: forwards;
 }
