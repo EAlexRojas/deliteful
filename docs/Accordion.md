@@ -10,8 +10,8 @@ visible, but only one or at least one panel's content is visible at a time (depe
 Once the panels are in an accordion, they become collapsible Panels by replacing their headers by ToggleButtons.  
 When a panel is open, it fills all the available space with its content.
 
-![Single Open Accordion](/images/Accordion1.png)
-![Multiple Open Accordion](/images/Accordion2.png)
+![Single Open Accordion](images/Accordion1.png)
+![Multiple Open Accordion](images/Accordion2.png)
 
 ##### Table of Contents
 [Element Instantiation](#instantiation)  
