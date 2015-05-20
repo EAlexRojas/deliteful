@@ -22,18 +22,39 @@ define(["dcl/dcl",
 		}
 	}
 
-	function listenAnimationEvents(element, callback) {
-		var events = ["animationend", "webkitAnimationEnd", "MSAnimationEnd"];
-		events.forEach(function (event) {
-			var tmp = {};
-			var listener = (function (el, ev, d) {
-				return function () {
-					callback(el, ev);
-					d.handler.remove();
-				};
-			})(element, event, tmp);
-			tmp.handler = element.on(event, listener);
-		});
+	function getAnimationEndEvent() {
+		var animationEndEvents = {
+			"animation": "animationend", // > IE10, FF
+			"-webkit-animation": "webkitAnimationEnd",   // > chrome 1.0 , > Android 2.1 , > Safari 3.2
+			"-ms-animation": "MSAnimationEnd" // IE 10
+		};
+		// NOTE: returns null if event is not supported
+		var fakeElement = document.createElement("fakeElement");
+		for (var event in animationEndEvents) {
+			if (fakeElement.style[event] !== undefined) {
+				return animationEndEvents[event];
+			}
+		}
+		return null;
+	}
+
+	var animationEndEvent = getAnimationEndEvent();
+
+	function listenAnimationEndEvent(element, callback) {
+		if (animationEndEvent) {
+			var holder = {};
+			var promise = new Promise(function (resolve) {
+				holder.listener = (function (el, d, res) {
+					return function () {
+						callback(el);
+						d.handler.remove();
+						res();
+					};
+				})(element, holder, resolve);
+			});
+			holder.handler = element.on(animationEndEvent, holder.listener);
+			return promise;
+		}
 	}
 
 	/**
@@ -221,6 +242,7 @@ define(["dcl/dcl",
 		},
 
 		_doTransition: function(panel, params) {
+			var promise;
 			if (params.hide) {
 				if (this.animate && this._supportTransition()) {
 					//To avoid hiding the panel title bar on animation
@@ -228,7 +250,7 @@ define(["dcl/dcl",
 					$(panel).addClass("d-accordion-closeAnimation");
 					$(panel).removeClass("d-accordion-open-panel");
 					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
-					listenAnimationEvents(panel, function (element) {
+					promise = listenAnimationEndEvent(panel, function (element) {
 						setVisibility(element.containerNode, false);
 						$(element).removeClass("d-accordion-closeAnimation");
 						panel.containerNode.style.overflow = "auto";
@@ -245,7 +267,7 @@ define(["dcl/dcl",
 					$(panel).addClass("d-accordion-openAnimation");
 					setVisibility(panel.containerNode, true);
 					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
-					listenAnimationEvents(panel, function (element) {
+					promise = listenAnimationEndEvent(panel, function (element) {
 						$(panel).addClass("d-accordion-open-panel");
 						$(element).removeClass("d-accordion-openAnimation");
 						panel.containerNode.style.overflow = "auto";
@@ -256,6 +278,7 @@ define(["dcl/dcl",
 					setVisibility(panel.containerNode, true);
 				}
 			}
+			return Promise.resolve(promise);
 		},
 
 		changeDisplay: function (widget, params) {
@@ -300,6 +323,8 @@ define(["dcl/dcl",
 			};
 		}),
 
+		//DisplayContainer hide method could be used if this issue is solved:
+		//https://github.com/ibm-js/delite/issues/407
 		hide: dcl.superCall(function (sup) {
 			return function (dest, params) {
 				var args = {hide: true};
