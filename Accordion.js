@@ -281,7 +281,7 @@ define(["dcl/dcl",
 		},
 
 		changeDisplay: function (widget, params) {
-			var valid = true;
+			var valid = true, promise;
 			if (params.hide) {
 				if (widget.open === true) {
 					if (this._numOpenPanels > 1) {
@@ -303,7 +303,7 @@ define(["dcl/dcl",
 						var origin = this._selectedChild;
 						this._selectedChild = widget;
 						if (origin !== widget) {
-							this.hide(origin);
+							promise = this.hide(origin);
 						}
 					}
 					widget.open = true;
@@ -313,7 +313,7 @@ define(["dcl/dcl",
 					valid = false;
 				}
 			}
-			return valid ? this._doTransition(widget, params) : Promise.resolve(true);
+			return valid ? Promise.all([this._doTransition(widget, params), promise]) : Promise.resolve(true);
 		},
 
 		//DisplayContainer hide method could be used if this issue is solved:
