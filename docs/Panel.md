@@ -8,15 +8,15 @@ title: deliteful/Panel
 `deliteful/Panel` is a container widget with a Title Bar on top, that uses CSS3 Flexible box to always show the title and fill the available
 space with its children.
 
-![](image)
+![Panel Example](images/Panel.png)
 
 ##### Table of Contents
-[Element Instantiation](#instantiation)
-[Element Configuration](#configuration)
-[Element Styling](#styling)
-[User Interactions](#interactions)
-[Element Events](#events)
-[Enterprise Use](#enterprise)
+[Element Instantiation](#instantiation)  
+[Element Configuration](#configuration)  
+[Element Styling](#styling)  
+[User Interactions](#interactions)  
+[Element Events](#events)  
+[Enterprise Use](#enterprise)  
 
 <a name="instantiation"></a>
 ## Element Instantiation
@@ -32,7 +32,7 @@ require(["deliteful/Panel", "requirejs-domready/domReady!"], function () {
 
 ```html
 <html>
-	<d-panel id="panel1">
+	<d-panel id="panel">
 		<div>Content - Panel</div>
 	</d-panel>
 </html>
@@ -82,10 +82,10 @@ The following CSS classes provided by the widget can be set explicitly on the el
 
 CSS Class          | Description
 -------------------| -------------
-`d-panel-success`  | Indicates a successful or positive action
-`d-panel-info`     | Indicates a neutral informative change or action
+`d-panel-success`  | Indicates a successful or positive information
+`d-panel-info`     | Indicates a neutral informative change or information
 `d-panel-warning`  | Indicates a warning that might need attention
-`d-panel-danger`   | Indicates a dangerous or potentially negative action
+`d-panel-danger`   | Indicates a dangerous or potentially negative information
 
 <a name="interactions"></a>
 ## User Interactions

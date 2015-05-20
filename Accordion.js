@@ -147,7 +147,7 @@ define(["dcl/dcl",
 
 		_numOpenPanels: 0,
 
-		_changeHandler: function(event) {
+		_changeHandler: function (event) {
 			var panel = event.target.parentNode;
 			//Case when the event is fired by the label or the icon
 			if (panel.nodeName.toLowerCase() !== "d-panel") {
@@ -156,7 +156,7 @@ define(["dcl/dcl",
 			if (this.singleOpen) {
 				this.show(panel);
 			} else {
-				if(panel.open) {
+				if (panel.open) {
 					this.hide(panel);
 				} else {
 					this.show(panel);
@@ -213,7 +213,7 @@ define(["dcl/dcl",
 
 		_showOpenPanel: function () {
 			//The default open panel is the first one
-			if ( !this._selectedChild && this._panelList.length > 0) {
+			if (!this._selectedChild && this._panelList.length > 0) {
 				this._selectedChild = this._panelList[0];
 			}
 			//Show selectedChild if exists
@@ -222,9 +222,8 @@ define(["dcl/dcl",
 			}
 		},
 
-		refreshRendering: function(props) {
+		refreshRendering: function (props) {
 			if ("_noAttachedPanels" in  props) {
-				console.log("_noAttachedPanels");
 				this._showOpenPanel();
 			}
 		},
@@ -241,7 +240,7 @@ define(["dcl/dcl",
 			return visible && (has("ie") ? has("ie") > 11 : true);
 		},
 
-		_doTransition: function(panel, params) {
+		_doTransition: function (panel, params) {
 			var promise;
 			if (params.hide) {
 				if (this.animate && this._supportTransition()) {
@@ -317,21 +316,13 @@ define(["dcl/dcl",
 			return valid ? this._doTransition(widget, params) : Promise.resolve(true);
 		},
 
-		show: dcl.superCall(function (sup) {
-			return function (dest, params) {
-				return sup.apply(this, [dest, params]);
-			};
-		}),
-
 		//DisplayContainer hide method could be used if this issue is solved:
 		//https://github.com/ibm-js/delite/issues/407
-		hide: dcl.superCall(function (sup) {
-			return function (dest, params) {
-				var args = {hide: true};
-				dcl.mix(args, params || {});
-				return this.changeDisplay(dest, args);
-			};
-		}),
+		hide: function (dest, params) {
+			var args = {hide: true};
+			dcl.mix(args, params || {});
+			return this.changeDisplay(dest, args);
+		},
 
 		addChild: dcl.superCall(function (sup) {
 			return function (node, insertIndex) {
