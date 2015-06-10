@@ -36,13 +36,13 @@ require(["deliteful/Accordion", "deliteful/Panel", "requirejs-domready/domReady!
 ```html
 <html>
 	<d-accordion id="accordion" selectedChildId="panel1">
-		<d-panel id="panel1">
+		<d-panel id="panel1" label="panel1">
 			<div>Content - Panel1 (Default open panel)</div>
 		</d-panel>
-		<d-panel id="panel2">
+		<d-panel id="panel2" label="panel2">
 			<div>Content - Panel2</div>
 		</d-panel>
-		<d-panel id="panel3">
+		<d-panel id="panel3" label="panel3">
 			<div>Content - Panel3</div>
 		</d-panel>
 	</d-accordion>

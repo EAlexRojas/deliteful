@@ -21,8 +21,6 @@
 }
 
 .d-accordion > .d-panel:last-child {
-  border: 1px solid;
-  border-color: @panel-inner-border;
   border-bottom-left-radius: @panel-border-radius;
   border-bottom-right-radius: @panel-border-radius;
 }
@@ -35,6 +33,7 @@
   border-color: @panel-inner-border;
   color: @panel-default-text;
   background-color: @panel-default-heading-bg;
+  .flex(0 0 auto);
 }
 
 .d-accordion > .d-panel > .d-toggle-button:hover {
@@ -44,40 +43,48 @@
 
 .d-accordion > .d-panel > .d-toggle-button.d-checked {
   background-color: @component-active-bg;
+  border-color: @component-active-bg;
   color: @component-active-color;
+}
+
+.d-accordion > .d-panel > .d-panel-content {
+  border: solid 2px @panel-inner-border;
+  border-top: none;
+}
+
+.d-panel-content-open {
+  border-color: @component-active-bg !important;
 }
 
 .d-accordion-open-panel {
   .flex(1);
 }
 
-.d-accordion-closed-panel {
-  .flex(0.0001);
-}
-
 @keyframes d-accordion-openAnimation {
-  from {flex: 0.0001;}
-  to {flex: 1;}
+  from {.flex(0.0001);}
+  to {.flex(1);}
 }
 @-webkit-keyframes d-accordion-openAnimation {
-  from {flex: 0.0001;}
-  to {flex: 1;}
+  from {.flex(0.0001);}
+  to {.flex(1);}
 }
 .d-accordion-openAnimation {
   animation-name: d-accordion-openAnimation;
   animation-duration: .3s;
   animation-fill-mode: forwards;
+  animation-timing-function: linear;
   -webkit-animation-name: d-accordion-openAnimation;
   -webkit-animation-duration: .3s;
   -webkit-animation-fill-mode: forwards;
+  -webkit-animation-timing-function: linear;
 }
 @keyframes d-accordion-closeAnimation {
-  from {flex: 1;}
-  to {flex: 0.0001;}
+  from {.flex(1);}
+  to {.flex(0.0001);}
 }
 @-webkit-keyframes d-accordion-closeAnimation {
-  from {flex: 1;}
-  to {flex: 0.0001;}
+  from {.flex(1);}
+  to {.flex(0.0001);}
 }
 .d-accordion-closeAnimation {
   animation-name: d-accordion-closeAnimation;

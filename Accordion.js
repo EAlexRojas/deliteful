@@ -11,18 +11,14 @@ define(["dcl/dcl",
 ], function (dcl, has, Promise, register, events, $, DisplayContainer, ToggleButton) {
 
 	function setVisibility(node, val) {
-		if (node) {
-			if (val) {
-				node.style.visibility = "visible";
-				node.style.display = "";
-			} else {
-				node.style.visibility = "hidden";
-				node.style.display = "none";
-			}
+		if (val) {
+			node.style.display = "";
+		} else {
+			node.style.display = "none";
 		}
 	}
 
-	function getAnimationEndEvent() {
+	var animationEndEvent = (function () {
 		var animationEndEvents = {
 			"animation": "animationend", // > IE10, FF
 			"-webkit-animation": "webkitAnimationEnd",   // > chrome 1.0 , > Android 2.1 , > Safari 3.2
@@ -36,24 +32,17 @@ define(["dcl/dcl",
 			}
 		}
 		return null;
-	}
-
-	var animationEndEvent = getAnimationEndEvent();
+	})();
 
 	function listenAnimationEndEvent(element, callback) {
 		if (animationEndEvent) {
-			var holder = {};
-			var promise = new Promise(function (resolve) {
-				holder.listener = (function (el, d, res) {
-					return function () {
-						callback(el);
-						d.handler.remove();
-						res();
-					};
-				})(element, holder, resolve);
+			return new Promise(function (resolve) {
+				var handler = element.on(animationEndEvent, function () {
+					callback(element);
+					handler.remove();
+					resolve();
+				});
 			});
-			holder.handler = element.on(animationEndEvent, holder.listener);
-			return promise;
 		}
 	}
 
@@ -67,7 +56,7 @@ define(["dcl/dcl",
 	 *
 	 * @example:
 	 * <d-accordion id="accordion" selectedChildId="panel1">
-	 *     <d-panel id="p&nel1">...</d-panel>
+	 *     <d-panel id="panel1">...</d-panel>
 	 *     <d-panel id="panel2">...</d-panel>
 	 *     <d-panel id="panel3">...</d-panel>
 	 * </d-accordion>
@@ -122,28 +111,7 @@ define(["dcl/dcl",
 		 */
 		closedIconClass : "",
 
-
 		_panelList: null,
-
-		_setSelectedChildIdAttr: function (childId) {
-			var childNode = this.ownerDocument.getElementById(childId);
-			if (childNode) {
-				this._set("selectedChildId", childId);
-				if (this.attached && childNode.attached) {
-					this.show(childNode);
-				} else {
-					this._selectedChild = childNode;
-				}
-			}
-		},
-
-		_getSelectedChildIdAttr: function () {
-			if (this.singleOpen) {
-				return this._selectedChild ? this._selectedChild.id : "";
-			} else {
-				return this._get("selectedChildId");
-			}
-		},
 
 		_numOpenPanels: 0,
 
@@ -164,7 +132,7 @@ define(["dcl/dcl",
 			}
 		},
 
-		_setupAttachedPanel: function (panel) {
+		_setupUpgradedChild: function (panel) {
 			var toggle = new ToggleButton({
 				label: panel.label,
 				iconClass: panel.closedIconClass || this.closedIconClass,
@@ -178,37 +146,31 @@ define(["dcl/dcl",
 			return panel;
 		},
 
-		_noAttachedPanels: 0,
+		_numNonUpgradedChildren: 0,
 
-		_setupNoAttachedPanel: function (panel) {
+		_setupNonUpgradedChild: function (panel) {
 			panel.accordion = this;
-			this._noAttachedPanels++;
+			this._numNonUpgradedChildren++;
 			panel.addEventListener("customelement-attached", this._attachedlistener = function () {
 				this.removeEventListener("customelement-attached", this._attachedlistener);
-				this.accordion._panelList.push(this.accordion._setupAttachedPanel(this));
-				if (--this.accordion._noAttachedPanels === 0) {
-					this.accordion.deliver();
-				}
-			});
+				this.accordion._panelList.push(this.accordion._setupUpgradedChild(this));
+				this.accordion._numNonUpgradedChildren--;
+			}.bind(panel));
 		},
 
 		attachedCallback: function () {
+			this._panelList = [];
 			// Declarative case (panels specified declaratively inside the declarative Accordion)
 			var panels = this.querySelectorAll("d-panel");
 			if (panels) {
 				for (var i = 0, l = panels.length; i < l; i++) {
 					if (!panels[i].attached) {
-						this._setupNoAttachedPanel(panels[i]);
+						this._setupNonUpgradedChild(panels[i]);
 					} else {
-						this._panelList.push(this._setupAttachedPanel(panels[i]));
+						this._panelList.push(this._setupUpgradedChild(panels[i]));
 					}
 				}
 			}
-			this._showOpenPanel();
-		},
-
-		preRender: function () {
-			this._panelList = [];
 		},
 
 		_showOpenPanel: function () {
@@ -222,13 +184,46 @@ define(["dcl/dcl",
 			}
 		},
 
+		/* jshint maxcomplexity: 11 */
 		refreshRendering: function (props) {
-			if ("_noAttachedPanels" in  props) {
-				this._showOpenPanel();
+			if ("selectedChildId" in props) {
+				var childNode = this.ownerDocument.getElementById(this.selectedChildId);
+				if (childNode) {
+					if (childNode.attached) {
+						if (childNode !== this._selectedChild) { //To avoid calling show() method twice
+							if (!this._selectedChild) { //If selectedChild is not initialized, then initialize it
+								this._selectedChild = childNode;
+							}
+							this.show(childNode);
+						}
+					} else {
+						this._selectedChild = childNode;
+					}
+				}
+			}
+			if ("attached" in props || "_numNonUpgradedChildren" in  props) {
+				if (this._numNonUpgradedChildren === 0) {
+					this._showOpenPanel();
+				}
+			}
+			if ("openIconClass" in props) {
+				this.getChildren().forEach(function (panel) {
+					if (panel.attached && !panel.iconClass) {
+						panel.headerNode.checkedIconClass = this.openIconClass;
+					}
+				}.bind(this));
+			}
+			if ("closedIconClass" in props) {
+				this.getChildren().forEach(function (panel) {
+					if (panel.attached && !panel.closedIconClass) {
+						panel.headerNode.iconClass = this.closedIconClass;
+					}
+				}.bind(this));
 			}
 		},
+		/* jshint maxcomplexity: 10 */
 
-		_supportTransition: function () {
+		_supportAnimation: function () {
 			//Transition events are broken if the widget is not visible
 			var parent = this;
 			while (parent && parent.style.display !== "none" && parent !== this.ownerDocument.documentElement) {
@@ -236,18 +231,19 @@ define(["dcl/dcl",
 			}
 			var visible =  parent === this.ownerDocument.documentElement;
 
-			//Flexbox animation is not supported on IE 11 and before
-			return visible && (has("ie") ? has("ie") > 11 : true);
+			//Flexbox animation is not supported on IE
+			//TODO: Create a feature test for flexbox animation
+			return visible && (!has("ie"));
 		},
 
 		_doTransition: function (panel, params) {
 			var promise;
 			if (params.hide) {
-				if (this.animate && this._supportTransition()) {
+				if (this.animate && this._supportAnimation()) {
 					//To avoid hiding the panel title bar on animation
 					panel.style.minHeight = window.getComputedStyle(panel.headerNode).getPropertyValue("height");
-					$(panel).addClass("d-accordion-closeAnimation");
-					$(panel).removeClass("d-accordion-open-panel");
+					$(panel).addClass("d-accordion-closeAnimation").removeClass("d-accordion-open-panel");
+					$(panel.containerNode).removeClass("d-panel-content-open");
 					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
 					promise = listenAnimationEndEvent(panel, function (element) {
 						setVisibility(element.containerNode, false);
@@ -257,23 +253,25 @@ define(["dcl/dcl",
 					});
 				} else {
 					$(panel).removeClass("d-accordion-open-panel");
+					$(panel.containerNode).removeClass("d-panel-content-open");
 					setVisibility(panel.containerNode, false);
 				}
 			} else {
-				if (this.animate && this._supportTransition()) {
+				if (this.animate && this._supportAnimation()) {
 					//To avoid hiding the panel title bar on animation
 					panel.style.minHeight = window.getComputedStyle(panel.headerNode).getPropertyValue("height");
 					$(panel).addClass("d-accordion-openAnimation");
+					$(panel.containerNode).addClass("d-panel-content-open");
 					setVisibility(panel.containerNode, true);
 					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
 					promise = listenAnimationEndEvent(panel, function (element) {
-						$(panel).addClass("d-accordion-open-panel");
-						$(element).removeClass("d-accordion-openAnimation");
+						$(element).addClass("d-accordion-open-panel").removeClass("d-accordion-openAnimation");
 						panel.containerNode.style.overflow = "auto";
 						panel.style.minHeight = "";
 					});
 				} else {
 					$(panel).addClass("d-accordion-open-panel");
+					$(panel.containerNode).addClass("d-panel-content-open");
 					setVisibility(panel.containerNode, true);
 				}
 			}
@@ -281,9 +279,9 @@ define(["dcl/dcl",
 		},
 
 		changeDisplay: function (widget, params) {
-			var valid = true, promise;
+			var valid = true, promises = [];
 			if (params.hide) {
-				if (widget.open === true) {
+				if (widget.open) {
 					if (this._numOpenPanels > 1) {
 						this._numOpenPanels--;
 						widget.open = false;
@@ -297,13 +295,14 @@ define(["dcl/dcl",
 					valid = false;
 				}
 			} else {
-				if (widget.open === false) {
+				if (!widget.open) {
 					this._numOpenPanels++;
 					if (this.singleOpen) {
 						var origin = this._selectedChild;
 						this._selectedChild = widget;
+						this.selectedChildId = widget.id;
 						if (origin !== widget) {
-							promise = this.hide(origin);
+							promises.push(this.hide(origin));
 						}
 					}
 					widget.open = true;
@@ -313,20 +312,15 @@ define(["dcl/dcl",
 					valid = false;
 				}
 			}
-			return valid ? Promise.all([this._doTransition(widget, params), promise]) : Promise.resolve(true);
-		},
-
-		//DisplayContainer hide method could be used if this issue is solved:
-		//https://github.com/ibm-js/delite/issues/407
-		hide: function (dest, params) {
-			var args = {hide: true};
-			dcl.mix(args, params || {});
-			return this.changeDisplay(dest, args);
+			if (valid) {
+				promises.push(this._doTransition(widget, params));
+			}
+			return Promise.all(promises);
 		},
 
 		addChild: dcl.superCall(function (sup) {
 			return function (node, insertIndex) {
-				return sup.apply(this, [this._setupAttachedPanel(node), insertIndex]);
+				return sup.apply(this, [this._setupUpgradedChild(node), insertIndex]);
 			};
 		})
 

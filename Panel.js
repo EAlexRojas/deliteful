@@ -18,7 +18,7 @@ define(["dcl/dcl",
 	 *   <div>...</div>
 	 * </d-panel>
 	 */
-	var Panel = dcl(Container, /** @lends module:deliteful/Panel# */ {
+	return register("d-panel", [HTMLElement, Container], /** @lends module:deliteful/Panel# */ {
 
 		/**
 		 * The name of the CSS class of this widget.
@@ -52,6 +52,4 @@ define(["dcl/dcl",
 		closedIconClass: "",
 		template: template
 	});
-
-	return register("d-panel", [HTMLElement, Panel]);
 });
