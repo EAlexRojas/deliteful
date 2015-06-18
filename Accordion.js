@@ -133,12 +133,25 @@ define(["dcl/dcl",
 		},
 
 		_setupUpgradedChild: function (panel) {
+			//TODO: To change when https://github.com/ibm-js/delite/issues/414 be solved
 			var toggle = new ToggleButton({
 				label: panel.label,
 				iconClass: panel.closedIconClass || this.closedIconClass,
 				checkedIconClass: panel.iconClass || this.openIconClass
 			});
 			toggle.placeAt(panel.headerNode, "replace");
+			// React to programmatic changes on the panel to update the button
+			panel.observe(function (oldValues) {
+				if ("label" in oldValues) {
+					this.headerNode.label = this.label;
+				}
+				if ("iconClass" in oldValues) {
+					this.headerNode.checkedIconClass = this.iconClass;
+				}
+				if ("closedIconClass" in oldValues) {
+					this.headerNode.iconClass = this.closedIconClass;
+				}
+			}.bind(panel));
 			toggle.on("click", this._changeHandler.bind(this));
 			panel.headerNode = toggle;
 			setVisibility(panel.containerNode, false);
@@ -184,7 +197,7 @@ define(["dcl/dcl",
 			}
 		},
 
-		/* jshint maxcomplexity: 11 */
+		/* jshint maxcomplexity: 13 */
 		refreshRendering: function (props) {
 			if ("selectedChildId" in props) {
 				var childNode = this.ownerDocument.getElementById(this.selectedChildId);
@@ -220,6 +233,16 @@ define(["dcl/dcl",
 					}
 				}.bind(this));
 			}
+			if ("singleOpen" in props) {
+				if (this.singleOpen) {
+					this._showOpenPanel();
+					this._panelList.forEach(function (panel) {
+						if (panel.open && panel !== this._selectedChild) {
+							this.hide(panel);
+						}
+					}.bind(this));
+				}
+			}
 		},
 		/* jshint maxcomplexity: 10 */
 
@@ -246,10 +269,10 @@ define(["dcl/dcl",
 					$(panel.containerNode).removeClass("d-panel-content-open");
 					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
 					promise = listenAnimationEndEvent(panel, function (element) {
-						setVisibility(element.containerNode, false);
+						setVisibility(element.containerNode, element.open);
 						$(element).removeClass("d-accordion-closeAnimation");
-						panel.containerNode.style.overflow = "auto";
-						panel.style.minHeight = "";
+						element.containerNode.style.overflow = "auto";
+						element.style.minHeight = "";
 					});
 				} else {
 					$(panel).removeClass("d-accordion-open-panel");
@@ -265,9 +288,11 @@ define(["dcl/dcl",
 					setVisibility(panel.containerNode, true);
 					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
 					promise = listenAnimationEndEvent(panel, function (element) {
-						$(element).addClass("d-accordion-open-panel").removeClass("d-accordion-openAnimation");
-						panel.containerNode.style.overflow = "auto";
-						panel.style.minHeight = "";
+						$(element).addClass(function () {
+							return element.open ? "d-accordion-open-panel" : "";
+						}).removeClass("d-accordion-openAnimation");
+						element.containerNode.style.overflow = "auto";
+						element.style.minHeight = "";
 					});
 				} else {
 					$(panel).addClass("d-accordion-open-panel");

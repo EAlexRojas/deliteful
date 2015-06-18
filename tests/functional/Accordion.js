@@ -126,7 +126,7 @@ define(["intern",
 						remotes.push(checkPanelIsClosed(remote, "panel2", true));
 						remotes.push(checkPanelIsOpen(remote, "panel3", true));
 						return all(remotes);
-					})
+					});
 			},
 			"Opening panel by clicking on the icon": function () {
 				var remote = this.remote;
@@ -142,7 +142,7 @@ define(["intern",
 						remotes.push(checkPanelIsOpen(remote, "panel2", true));
 						remotes.push(checkPanelIsClosed(remote, "panel3", true));
 						return all(remotes);
-					})
+					});
 			},
 			"Trying to close the open panel": function () {
 				var remote = this.remote;
@@ -158,11 +158,11 @@ define(["intern",
 						remotes.push(checkPanelIsOpen(remote, "panel2", false));
 						remotes.push(checkPanelIsClosed(remote, "panel3", false));
 						return all(remotes);
-					})
+					});
 			}
 		},
 		"MultipleOpen Mode": {
-			"setup": function() {
+			"setup": function () {
 				var remote = this.remote;
 				return remote
 					.execute("document.getElementById('accordion').style.display = 'none'")
@@ -175,8 +175,8 @@ define(["intern",
 					.then(function (button) {
 						button.click();
 					})
-					.end().
-					execute("return document.getElementById('panel23').headerNode")
+					.end()
+					.execute("return document.getElementById('panel23').headerNode")
 					.then(function (button) {
 						button.click();
 					})
@@ -187,7 +187,7 @@ define(["intern",
 						remotes.push(checkPanelIsOpen(remote, "panel22", true));
 						remotes.push(checkPanelIsOpen(remote, "panel23", true));
 						return all(remotes);
-					})
+					});
 			},
 			"Check closing panel": function () {
 				var remote = this.remote;
@@ -203,7 +203,7 @@ define(["intern",
 						remotes.push(checkPanelIsClosed(remote, "panel22", true));
 						remotes.push(checkPanelIsOpen(remote, "panel23", false));
 						return all(remotes);
-					})
+					});
 			},
 			"Closing panel by clicking on the label": function () {
 				var remote = this.remote;
@@ -219,7 +219,7 @@ define(["intern",
 						remotes.push(checkPanelIsClosed(remote, "panel22", true));
 						remotes.push(checkPanelIsClosed(remote, "panel23", true));
 						return all(remotes);
-					})
+					});
 			},
 			"Trying to close last open panel": function () {
 				var remote = this.remote;
@@ -235,7 +235,7 @@ define(["intern",
 						remotes.push(checkPanelIsClosed(remote, "panel22", false));
 						remotes.push(checkPanelIsClosed(remote, "panel23", false));
 						return all(remotes);
-					})
+					});
 			}
 		}
 	});
