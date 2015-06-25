@@ -357,6 +357,28 @@ define(["dcl/dcl",
 			return Promise.all(promises);
 		},
 
+		show: dcl.superCall(function (sup) {
+			return function (dest, params) {
+				//Case when the panel's content is loaded dynamically
+				if (params && params.contentId) {
+					var child = this.loadChild(params.contentId);
+					var self = this;
+					return Promise.resolve(child).then(function (value) {
+						var panel = typeof dest === "string" ? this.ownerDocument.getElementById(dest) : dest;
+						// if view is not the panel's containerNode this means we loaded a new view, replace it
+						if (panel.containerNode !== value.child) {
+							panel.replaceChild(value.child, panel.containerNode);
+							panel.containerNode = value.child;
+							$(panel.containerNode).addClass("d-panel-content");
+						}
+						return sup.apply(self, [dest, params]);
+					});
+				} else {
+					return sup.apply(this, [dest, params]);
+				}
+			};
+		}),
+
 		onAddChild: dcl.superCall(function (sup) {
 			return function (node) {
 				var res = sup.call(this, node);
