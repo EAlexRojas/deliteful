@@ -367,7 +367,10 @@ define(["dcl/dcl",
 						var panel = typeof dest === "string" ? this.ownerDocument.getElementById(dest) : dest;
 						// if view is not the panel's containerNode this means we loaded a new view, replace it
 						if (panel.containerNode !== value.child) {
-							panel.replaceChild(value.child, panel.containerNode);
+							var oldContainerNode = panel.containerNode;
+							panel.containerNode = panel;
+							panel.removeChild(oldContainerNode);
+							panel.addChild(value.child);
 							panel.containerNode = value.child;
 							$(panel.containerNode).addClass("d-panel-content");
 						}
