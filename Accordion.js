@@ -357,11 +357,17 @@ define(["dcl/dcl",
 			return Promise.all(promises);
 		},
 
-		addChild: dcl.superCall(function (sup) {
-			return function (node, insertIndex) {
-				return sup.apply(this, [this._setupUpgradedChild(node), insertIndex]);
+		onAddChild: dcl.superCall(function (sup) {
+			return function (node) {
+				var res = sup.call(this, node);
+				this._panelList.push(this._setupUpgradedChild(node));
+				return res;
 			};
 		}),
+
+		_onRemoveChild: function (event) {
+			this._panelList.splice(this._panelList.indexOf(event.child), 1);
+		},
 
 		//////////// delite/KeyNav implementation ///////////////////////////////////////
 		// Keyboard navigation is based on WAI-ARIA Pattern for Accordion:
@@ -402,6 +408,7 @@ define(["dcl/dcl",
 			this.setAttribute("role", "tablist");
 			this.setAttribute("aria-multiselectable", "false");
 			this.on("keynav-child-navigated", this._keynavChildNavigatedHandler.bind(this));
+			this.on("delite-remove-child", this._onRemoveChild.bind(this));
 		}
 
 	});
