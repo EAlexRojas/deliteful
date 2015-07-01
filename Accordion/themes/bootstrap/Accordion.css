@@ -48,6 +48,7 @@
   -ms-flex: 0 0 auto;
   flex: 0 0 auto;
 }
+.d-accordion > .d-panel > .d-toggle-button:focus,
 .d-accordion > .d-panel > .d-toggle-button:hover {
   background-color: #e1e1e1;
   border-color: #bebebe;
@@ -56,6 +57,11 @@
   background-color: #428bca;
   border-color: #428bca;
   color: #ffffff;
+}
+.d-accordion > .d-panel > .d-toggle-button.d-checked:focus,
+.d-accordion > .d-panel > .d-toggle-button.d-checked:hover {
+  background-color: #72a8d7;
+  border-color: #3071a9;
 }
 .d-accordion > .d-panel > .d-panel-content {
   border: solid 2px #dddddd;

@@ -50,6 +50,11 @@ define(["dcl/dcl",
 		 * @default ""
 		 */
 		closedIconClass: "",
-		template: template
+		template: template,
+
+		postRender: function () {
+			this.headerNode.id = (this.id ? this.id : "panel_" + this.widgetId) + "_panelHeader";
+			this.containerNode.setAttribute("aria-labelledby", this.headerNode.id);
+		}
 	});
 });

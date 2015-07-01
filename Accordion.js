@@ -3,12 +3,12 @@ define(["dcl/dcl",
 	"decor/sniff",
 	"requirejs-dplugins/Promise!",
 	"delite/register",
-	"dpointer/events",
+	"delite/KeyNav",
 	"requirejs-dplugins/jquery!attributes/classes",
 	"delite/DisplayContainer",
 	"./ToggleButton",
 	"delite/theme!./Accordion/themes/{{theme}}/Accordion.css"
-], function (dcl, has, Promise, register, events, $, DisplayContainer, ToggleButton) {
+], function (dcl, has, Promise, register, KeyNav, $, DisplayContainer, ToggleButton) {
 
 	function setVisibility(node, val) {
 		if (val) {
@@ -63,7 +63,7 @@ define(["dcl/dcl",
 	 * @class module:deliteful/Accordion
 	 * @augments module:delite/DisplayContainer
 	 */
-	var Accordion = dcl(DisplayContainer, /** @lends module:deliteful/Accordion# */ {
+	var Accordion = dcl([DisplayContainer, KeyNav], /** @lends module:deliteful/Accordion# */ {
 
 		/**
 		 * The name of the CSS class of this widget.
@@ -137,7 +137,8 @@ define(["dcl/dcl",
 			var toggle = new ToggleButton({
 				label: panel.label,
 				iconClass: panel.closedIconClass || this.closedIconClass,
-				checkedIconClass: panel.iconClass || this.openIconClass
+				checkedIconClass: panel.iconClass || this.openIconClass,
+				id: panel.id + "_button"
 			});
 			toggle.placeAt(panel.headerNode, "replace");
 			// React to programmatic changes on the panel to update the button
@@ -156,6 +157,14 @@ define(["dcl/dcl",
 			panel.headerNode = toggle;
 			setVisibility(panel.containerNode, false);
 			panel.open = false;
+			//Setting initial WAI-ARIA properties
+			panel.headerNode.setAttribute("tabindex", "-1");
+			panel.headerNode.setAttribute("role", "tab");
+			panel.headerNode.setAttribute("aria-expanded", "false");
+			panel.headerNode.setAttribute("aria-selected", "false");
+			panel.containerNode.setAttribute("role", "tabpanel");
+			panel.containerNode.setAttribute("aria-labelledby", panel.headerNode.id);
+			panel.containerNode.setAttribute("aria-hidden", "true");
 			return panel;
 		},
 
@@ -234,6 +243,7 @@ define(["dcl/dcl",
 				}.bind(this));
 			}
 			if ("singleOpen" in props) {
+				this.setAttribute("aria-multiselectable", !this.singleOpen);
 				if (this.singleOpen) {
 					this._showOpenPanel();
 					this._panelList.forEach(function (panel) {
@@ -271,7 +281,7 @@ define(["dcl/dcl",
 					promise = listenAnimationEndEvent(panel, function (element) {
 						setVisibility(element.containerNode, element.open);
 						$(element).removeClass("d-accordion-closeAnimation");
-						element.containerNode.style.overflow = "auto";
+						element.containerNode.style.overflow = "";
 						element.style.minHeight = "";
 					});
 				} else {
@@ -291,7 +301,7 @@ define(["dcl/dcl",
 						$(element).addClass(function () {
 							return element.open ? "d-accordion-open-panel" : "";
 						}).removeClass("d-accordion-openAnimation");
-						element.containerNode.style.overflow = "auto";
+						element.containerNode.style.overflow = "";
 						element.style.minHeight = "";
 					});
 				} else {
@@ -339,6 +349,10 @@ define(["dcl/dcl",
 			}
 			if (valid) {
 				promises.push(this._doTransition(widget, params));
+				//Updating WAI-ARIA properties
+				widget.headerNode.setAttribute("aria-selected", widget.open);
+				widget.headerNode.setAttribute("aria-expanded", widget.open);
+				widget.containerNode.setAttribute("aria-hidden", !widget.open);
 			}
 			return Promise.all(promises);
 		},
@@ -347,7 +361,48 @@ define(["dcl/dcl",
 			return function (node, insertIndex) {
 				return sup.apply(this, [this._setupUpgradedChild(node), insertIndex]);
 			};
-		})
+		}),
+
+		//////////// delite/KeyNav implementation ///////////////////////////////////////
+		// Keyboard navigation is based on WAI-ARIA Pattern for Accordion:
+		// http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#accordion
+		descendantSelector: "d-panel>.d-toggle-button",
+
+		previousArrowKeyHandler: function () {
+			var focusedPanel = this.navigatedDescendant.parentNode;
+			this.navigateTo(focusedPanel.previousElementSibling ? focusedPanel.previousElementSibling.headerNode
+				: this.lastElementChild.headerNode);
+		},
+
+		nextArrowKeyHandler: function () {
+			var focusedPanel = this.navigatedDescendant.parentNode;
+			this.navigateTo(focusedPanel.nextElementSibling ? focusedPanel.nextElementSibling.headerNode
+				: this.firstElementChild.headerNode);
+		},
+
+		upArrowKeyHandler: function () {
+			this.previousArrowKeyHandler();
+		},
+
+		downArrowKeyHandler: function () {
+			this.nextArrowKeyHandler();
+		},
+
+		_lastFocusedDescendant: null,
+
+		focus: function () {
+			this._lastFocusedDescendant ? this.navigateTo(this._lastFocusedDescendant) : this.navigateToFirst();
+		},
+
+		_keynavChildNavigatedHandler: function (event) {
+			this._lastFocusedDescendant = event.newValue;
+		},
+
+		postRender: function () {
+			this.setAttribute("role", "tablist");
+			this.setAttribute("aria-multiselectable", "false");
+			this.on("keynav-child-navigated", this._keynavChildNavigatedHandler.bind(this));
+		}
 
 	});
 

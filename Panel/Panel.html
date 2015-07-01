@@ -1,7 +1,7 @@
-<template>
-	<div class="d-panel-header" attach-point="headerNode">
+<template role="presentation">
+	<div class="d-panel-header" attach-point="headerNode" role="heading">
 		<span attach-point="iconNode" class="d-icon {{(this.iconClass ? this.iconClass : 'd-hidden')}}"></span>
 		<span attach-point="labelNode">{{label}}</span>
 	</div>
-	<div class="d-panel-content" attach-point="containerNode"></div>
+	<div class="d-panel-content" attach-point="containerNode" role="region"></div>
 </template>

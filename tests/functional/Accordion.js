@@ -110,7 +110,7 @@ define(["intern",
 						remotes.push(checkPanelIsOpen(remote, "panel2", true));
 						remotes.push(checkPanelIsClosed(remote, "panel3", false));
 						return all(remotes);
-					})
+					});
 			},
 			"Opening panel by clicking on the label": function () {
 				var remote = this.remote;

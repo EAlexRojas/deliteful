@@ -36,6 +36,7 @@
   .flex(0 0 auto);
 }
 
+.d-accordion > .d-panel > .d-toggle-button:focus,
 .d-accordion > .d-panel > .d-toggle-button:hover {
   background-color: darken(@panel-default-heading-bg, 8%);
   border-color: darken(@panel-inner-border, 12%);
@@ -45,6 +46,12 @@
   background-color: @component-active-bg;
   border-color: @component-active-bg;
   color: @component-active-color;
+}
+
+.d-accordion > .d-panel > .d-toggle-button.d-checked:focus,
+.d-accordion > .d-panel > .d-toggle-button.d-checked:hover {
+  background-color: lighten(@component-active-bg, 12%);
+  border-color: darken(@component-active-bg, 10%);
 }
 
 .d-accordion > .d-panel > .d-panel-content {
