@@ -400,14 +400,16 @@ define(["dcl/dcl",
 			this._lastFocusedDescendant ? this.navigateTo(this._lastFocusedDescendant) : this.navigateToFirst();
 		},
 
-		_keynavChildNavigatedHandler: function (event) {
-			this._lastFocusedDescendant = event.newValue;
-		},
+		_keynavDeactivatedHandler: dcl.superCall(function (sup) {
+			return function () {
+				this._lastFocusedDescendant = this.navigatedDescendant;
+				sup.call(this);
+			};
+		}),
 
 		postRender: function () {
 			this.setAttribute("role", "tablist");
 			this.setAttribute("aria-multiselectable", "false");
-			this.on("keynav-child-navigated", this._keynavChildNavigatedHandler.bind(this));
 			this.on("delite-remove-child", this._onRemoveChild.bind(this));
 		}
 

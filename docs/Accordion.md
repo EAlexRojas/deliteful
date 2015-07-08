@@ -82,13 +82,39 @@ If false, several panels can be open at a time. Panels can be closed but there's
 * `selectedChildId`: The id of the panel to be open at initialization. If not specified, the default open panel is the first one.
 On `singleOpen` mode, this property contains the id of the current open panel.
 
-* `animate`: If true, animation is used when a panel is opened or closed. It doesn't work on IE < 12.
+* `animate`: If true, animation is used when a panel is opened or closed. Animations are disabled on IE.
 
 * `openIconClass`: The default CSS class to apply to DOMNode in children headers to make them display an icon when they are
 open. If a child panel has its own iconClass specified, that value is used on that panel.
 
 * `closedIconClass`: The default CSS class to apply to DOMNode in children headers to make them display an icon when they are
 closed. If a child panel has its own closedIconClass specified, that value is used on that panel.
+
+<a name="showingPanel"></a>
+### Showing a panel's content
+
+To show the content of a child Panel of the Accordion, call the `show` method:
+
+```js
+  accordion.show(panel2);
+```
+
+The `show` method takes as argument a DOM node instance or id. The content of the respective  panel will be shown.
+On `singleOpen` mode, this method will hide the content of the current open Panel.
+If the panel is already open, the method doesn't has any effect.
+
+<a name="hidingPanel"></a>
+### Hiding a panel's content
+
+Hiding the content of a panel is only possible on `multipleOpen` mode.
+To hide the content of a child Panel of the Accordion, call the `hide` method:
+
+```js
+  accordion.hide(panel2);
+```
+
+The `hide` method takes as argument a DOM node instance or id. The content of the respective  panel will be hidden.
+If the panel is the only one open, the method doesn't has any effect.
 
 <a name="styling"></a>
 ## Element Styling
@@ -113,8 +139,17 @@ show/hide (respectively) the content of the panel by:
 * Tapping it on a touch screen device,
 * Pressing the SPACE/Enter key when the button has keyboard focus.
 
+When focus is on a panel's header, user can navigate between the different panels by using the following key commands:
+
+* `up/left arrow`: move focus to the previous panel's header. If focus is on first panel's header, moves focus to last panel's header.
+* `down/right arrow`: move focus to the next panel's header. If focus is on last panel's header, moves focus to first panel's header.
+* `home`: move focus to the first panel's header.
+* `end`: move focus to the last panel's header.
+* `Enter/Space`: if panel is closed, shows the content of the panel. (see [Showing a panel's content](showingPanel))
+   If panel is open, hides the content of the panel. (see [Hiding a panel's content](hidingPanel))
+
 Note: On `singleOpen` mode, clicking, tapping or pressing the SPACE/Enter key on the button of the open panel, doesn't has any effect.
-Same thing on `multipleOpen` mode when there's only one open panel. In both case, in order to keep at least one panel open at a time.
+Same thing on `multipleOpen` mode when there's only one open panel. In both case, in order to keep always at least one panel open.
 
 <a name="events"></a>
 ## Element Events
@@ -128,9 +163,10 @@ For more informations, see [`delite/DisplayContainer`](/delite/docs/master/Displ
 
 |type|status|comment|
 |----|------|-------|
-|Keyboard|partial|Panels can be open/closed by pressing the SPACE/Enter key when its Toggle Button has keyboard focus|
+|Keyboard|ok|It is keyboard navigable (see [User Interactions](#interactions))|
 |Visual Formatting|||
-|Screen Reader|||
+|Screen Reader|ok|based on WAI-ARIA Pattern for Accordion: http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#accordion|
+||| Tested with JAWS and VoiceOver|
 
 ### Globalization
 
@@ -142,5 +178,5 @@ This widget has no specific security concern. Refer to [`delite/Widget`](/delite
 
 ### Browser Support
 
-This widget supports all supported browsers. On Internet Explorer, transitions are not animated.
+This widget supports all supported browsers. On Internet Explorer, animations are disabled.
 

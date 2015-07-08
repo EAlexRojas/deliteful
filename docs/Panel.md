@@ -96,7 +96,11 @@ CSS Class          | Description
 
 ### Accessibility
 
-Relies on browser.
+|type|status|comment|
+|----|------|-------|
+|Keyboard|N/A|No user interaction|
+|Visual Formatting|||
+|Screen Reader|ok|Title bar has an ARIA role of `heading` and content has an ARIA role of `region`. Tested with JAWS and VoiceOver|
 
 ### Globalization
 
