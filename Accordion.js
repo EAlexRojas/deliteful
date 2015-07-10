@@ -111,7 +111,7 @@ define(["dcl/dcl",
 		 */
 		closedIconClass : "",
 
-		_panelList: null,
+		_panelList: [],
 
 		_numOpenPanels: 0,
 

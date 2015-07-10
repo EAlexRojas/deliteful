@@ -99,10 +99,10 @@ define(["intern",
 			"Check opening panel": function () {
 				var remote = this.remote;
 				return remote
-					.execute("return document.getElementById('panel2').headerNode")
-					.then(function (button) {
-						button.click();
-					})
+					.findById("panel2")
+						.findByClassName("d-toggle-button")
+						.click()
+						.end()
 					.end()
 					.then(function () {
 						var remotes = [];
@@ -115,10 +115,14 @@ define(["intern",
 			"Opening panel by clicking on the label": function () {
 				var remote = this.remote;
 				return remote
-					.execute("return document.getElementById('panel3').headerNode.labelNode")
-					.then(function (label) {
-						label.click();
-					})
+					.findById("panel3")
+						.findByClassName("d-toggle-button")
+							.findAllByTagName("span")
+							.then(function (span) {
+								span[1].click();
+							})
+							.end()
+						.end()
 					.end()
 					.then(function () {
 						var remotes = [];
@@ -131,10 +135,12 @@ define(["intern",
 			"Opening panel by clicking on the icon": function () {
 				var remote = this.remote;
 				return remote
-					.execute("return document.getElementById('panel2').headerNode.iconNode")
-					.then(function (icon) {
-						icon.click();
-					})
+					.findById("panel2")
+						.findByClassName("d-toggle-button")
+							.findByClassName("d-icon")
+							.click()
+							.end()
+						.end()
 					.end()
 					.then(function () {
 						var remotes = [];
@@ -147,10 +153,10 @@ define(["intern",
 			"Trying to close the open panel": function () {
 				var remote = this.remote;
 				return remote
-					.execute("return document.getElementById('panel2').headerNode")
-					.then(function (button) {
-						button.click();
-					})
+					.findById("panel2")
+						.findByClassName("d-toggle-button")
+						.click()
+						.end()
 					.end()
 					.then(function () {
 						var remotes = [];
@@ -171,15 +177,15 @@ define(["intern",
 			"Check opening all panels": function () {
 				var remote = this.remote;
 				return remote
-					.execute("return document.getElementById('panel22').headerNode")
-					.then(function (button) {
-						button.click();
-					})
+					.findById("panel22")
+						.findByClassName("d-toggle-button")
+						.click()
+						.end()
 					.end()
-					.execute("return document.getElementById('panel23').headerNode")
-					.then(function (button) {
-						button.click();
-					})
+					.findById("panel23")
+						.findByClassName("d-toggle-button")
+						.click()
+						.end()
 					.end()
 					.then(function () {
 						var remotes = [];
@@ -192,10 +198,10 @@ define(["intern",
 			"Check closing panel": function () {
 				var remote = this.remote;
 				return remote
-					.execute("return document.getElementById('panel22').headerNode")
-					.then(function (button) {
-						button.click();
-					})
+					.findById("panel22")
+						.findByClassName("d-toggle-button")
+						.click()
+						.end()
 					.end()
 					.then(function () {
 						var remotes = [];
@@ -208,10 +214,14 @@ define(["intern",
 			"Closing panel by clicking on the label": function () {
 				var remote = this.remote;
 				return remote
-					.execute("return document.getElementById('panel23').headerNode.labelNode")
-					.then(function (label) {
-						label.click();
-					})
+					.findById("panel23")
+						.findByClassName("d-toggle-button")
+							.findAllByTagName("span")
+							.then(function (span) {
+								span[1].click();
+							})
+							.end()
+						.end()
 					.end()
 					.then(function () {
 						var remotes = [];
@@ -224,10 +234,10 @@ define(["intern",
 			"Trying to close last open panel": function () {
 				var remote = this.remote;
 				return remote
-					.execute("return document.getElementById('panel21').headerNode")
-					.then(function (button) {
-						button.click();
-					})
+					.findById("panel21")
+						.findByClassName("d-toggle-button")
+						.click()
+						.end()
 					.end()
 					.then(function () {
 						var remotes = [];
