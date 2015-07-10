@@ -374,24 +374,24 @@ define(["dcl/dcl",
 		// http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#accordion
 		descendantSelector: "d-panel>.d-toggle-button",
 
-		previousArrowKeyHandler: function () {
+		previousKeyHandler: function () {
 			var focusedPanel = this.navigatedDescendant.parentNode;
 			this.navigateTo(focusedPanel.previousElementSibling ? focusedPanel.previousElementSibling.headerNode
 				: this.lastElementChild.headerNode);
 		},
 
-		nextArrowKeyHandler: function () {
+		nextKeyHandler: function () {
 			var focusedPanel = this.navigatedDescendant.parentNode;
 			this.navigateTo(focusedPanel.nextElementSibling ? focusedPanel.nextElementSibling.headerNode
 				: this.firstElementChild.headerNode);
 		},
 
-		upArrowKeyHandler: function () {
-			this.previousArrowKeyHandler();
+		upKeyHandler: function () {
+			this.previousKeyHandler();
 		},
 
-		downArrowKeyHandler: function () {
-			this.nextArrowKeyHandler();
+		downKeyHandler: function () {
+			this.nextKeyHandler();
 		},
 
 		_lastFocusedDescendant: null,
