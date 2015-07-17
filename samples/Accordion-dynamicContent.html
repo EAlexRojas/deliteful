@@ -1,0 +1,106 @@
+<!doctype html>
+<html id="html">
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+		<meta name="viewport"
+			  content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/>
+		<meta name="apple-mobile-web-app-capable" content="yes"/>
+
+		<title>Accordion</title>
+
+		<link rel="stylesheet" href="../../delite/themes/defaultapp.css">
+
+		<script src="../../requirejs/require.js"></script>
+		<script type="text/javascript">
+			require.config({
+				baseUrl: "../.."
+			});
+		</script>
+
+		<script type="text/javascript">
+			require([
+				"deliteful/StarRating",
+				"deliteful/Accordion",
+				"deliteful/Panel",
+				"deliteful/Button",
+				"delite/theme!delite/themes/{{theme}}/global.css",	// page level CSS
+				"requirejs-domready/domReady!"
+			], function(StarRating) {
+
+				var count = 0;
+
+				function initView(view, id) {
+					view.innerHTML = "<h3>New Content : " + (count++) + "</h3>";
+					view.setAttribute("id", id);
+				}
+
+				function createWidget(view, id) {
+					view.setAttribute("id", id);
+					var starRating = new StarRating({max: 7, value: 3.5, editHalfValues: true});
+					starRating.placeAt(view);
+				}
+
+				document.addEventListener("delite-display-load", function (event) {
+					var view, node = typeof event.dest === "string" ? document.getElementById(event.dest) : event.dest;
+					if (!node) {
+						view = document.createElement("div");
+						if (event.dest.startsWith("StarRating")) {
+							createWidget(view, event.dest);
+						} else {
+							initView(view, event.dest);
+						}
+					} else if (node.innerHTML.trim() === "") {
+						view = document.createElement("div");
+						initView(view, event.dest);
+					} else {
+						view = node;
+					}
+					event.setChild(new Promise(function (resolve) {
+						resolve({child: view});
+					}));
+				});
+
+				loadP2Content = function() {
+					accordion.hide(p2).then(function(){
+						accordion.show(p2, {contentId: 'StarRating 2'})
+					});
+				};
+
+				createP3Content = function() {
+					accordion.hide(p3).then(function(){
+						accordion.show(p3, {contentId: 'NewContent ' + Math.floor(Math.random() * (100))})
+					})
+				};
+
+				document.body.style.display = "";
+			});
+		</script>
+		<style>
+			.icon-plus:before {
+				content: "\25b6";
+			}
+			.icon-minus:before {
+				content: "\25bc";
+			}
+			.icon-right:before {
+				content: "\21D2";
+			}
+			.icon-down:before {
+				content: "\21D3";
+			}
+		</style>
+	</head>
+	<body style="display:none">
+	<d-accordion id="accordion" singleOpen="false" openIconClass="icon-right" closedIconClass="icon-down"
+			selectedChildId="p2" style="height: 800px">
+		<d-panel id="p1" label="Panel1">
+		</d-panel>
+		<d-panel id="p2" label="Panel2">
+		</d-panel>
+		<d-panel id="p3" label="Panel3">
+		</d-panel>
+	</d-accordion>
+	<button is="d-button" onclick="loadP2Content()">Load widget on Panel2</button>
+	<button is="d-button" onclick="createP3Content()">Create new content for Panel3</button>
+	</body>
+</html>

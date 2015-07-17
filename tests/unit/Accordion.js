@@ -57,6 +57,7 @@ define([
 					!panel.open && !panel.headerNode.checked && !$(panel).hasClass("d-accordion-open-panel")),
 			message);
 		});
+		checkAriaProperties(openPanels, closedPanels);
 	}
 
 	function checkPanelIconProperties(panel, pIc, pCIc, bCIc, bIc, open) {
@@ -65,6 +66,29 @@ define([
 		assert.isTrue(panel.headerNode.checkedIconClass === bCIc, "Invalid button checkedIconClass");
 		assert.isTrue(panel.headerNode.iconClass === bIc, "Invalid button iconClass");
 		assert.isTrue($(panel.headerNode.iconNode).hasClass(open ? bCIc : bIc), "Invalid iconNode class");
+	}
+
+	function checkAriaProperties(openPanels, closedPanels) {
+		openPanels.forEach(function (panel) {
+			assert.strictEqual(panel.getAttribute("role"), "presentation");
+			assert.strictEqual(panel.headerNode.getAttribute("role"), "tab");
+			assert.strictEqual(panel.headerNode.getAttribute("aria-expanded"), "true");
+			assert.strictEqual(panel.headerNode.getAttribute("aria-selected"), "true");
+			assert.strictEqual(panel.headerNode.getAttribute("tabindex"), "-1");
+			assert.strictEqual(panel.containerNode.getAttribute("role"), "tabpanel");
+			assert.strictEqual(panel.containerNode.getAttribute("aria-hidden"), "false");
+			assert.strictEqual(panel.containerNode.getAttribute("aria-labelledby"), panel.headerNode.id);
+		});
+		closedPanels.forEach(function (panel) {
+			assert.strictEqual(panel.getAttribute("role"), "presentation");
+			assert.strictEqual(panel.headerNode.getAttribute("role"), "tab");
+			assert.strictEqual(panel.headerNode.getAttribute("aria-expanded"), "false");
+			assert.strictEqual(panel.headerNode.getAttribute("aria-selected"), "false");
+			assert.strictEqual(panel.headerNode.getAttribute("tabindex"), "-1");
+			assert.strictEqual(panel.containerNode.getAttribute("role"), "tabpanel");
+			assert.strictEqual(panel.containerNode.getAttribute("aria-hidden"), "true");
+			assert.strictEqual(panel.containerNode.getAttribute("aria-labelledby"), panel.headerNode.id);
+		});
 	}
 
 	var commonSuite = {
@@ -79,6 +103,10 @@ define([
 			assert.strictEqual(accordion.selectedChildId, "panel1", "by default the selectedChild is the first one");
 			assert.strictEqual(accordion.openIconClass, "", "openIconClass doesn't have a default value");
 			assert.strictEqual(accordion.closedIconClass, "", "closedIconClass doesn't have a default value");
+			assert.strictEqual(accordion.getAttribute("role"), "tablist");
+			assert.strictEqual(accordion.getAttribute("aria-multiselectable"), "false");
+			assert.strictEqual(accordion.getAttribute("tabindex"), "0");
+
 		},
 		"SingleOpen Mode": {
 			"setup": function () {
@@ -94,37 +122,44 @@ define([
 					var d = this.async(1000);
 					asyncHandler = accordion.on("delite-after-show", d.callback(function () {
 						checkUniqueOpenPanel(accordion, panel1, "Only panel1 should be open");
+						checkAriaProperties([panel1], [panel2, panel3]);
 					}));
 				}
 			},
 			"Show(by id)": function () {
 				return accordion.show("panel3").then(function () {
 					checkUniqueOpenPanel(accordion, panel3, "Only panel3 should be open");
+					checkAriaProperties([panel3], [panel1, panel2]);
 				});
 			},
 			"Show(by widget)": function () {
 				return accordion.show(panel2).then(function () {
 					checkUniqueOpenPanel(accordion, panel2, "Only panel2 should be open");
+					checkAriaProperties([panel2], [panel1, panel3]);
 				});
 			},
 			"Show(already open panel)": function () {
 				return accordion.show(panel2).then(function () {
 					checkUniqueOpenPanel(accordion, panel2, "Accordion status shouldn't change");
+					checkAriaProperties([panel2], [panel1, panel3]);
 				});
 			},
 			"Trying to hide open panel": function () {
 				return accordion.hide(panel2).then(function () {
 					checkUniqueOpenPanel(accordion, panel2, "Accordion status shouldn't change");
+					checkAriaProperties([panel2], [panel1, panel3]);
 				});
 			},
 			"Trying to hide closed panel": function () {
 				return accordion.hide(panel1).then(function () {
 					checkUniqueOpenPanel(accordion, panel2, "Accordion status shouldn't change");
+					checkAriaProperties([panel2], [panel1, panel3]);
 				});
 			},
 			"Changing selectedChildId": function () {
 				asyncHandler = accordion.on("delite-after-show", function () {
 					checkUniqueOpenPanel(accordion, panel1, "Only panel1 should be open");
+					checkAriaProperties([panel1], [panel2, panel3]);
 				});
 				accordion.selectedChildId = "panel1";
 			},
@@ -133,6 +168,7 @@ define([
 				return accordion.show(panel2).then(function () {
 					checkUniqueOpenPanel(accordion, panel2, "Only panel2 should be open");
 					accordion.animate = true;
+					checkAriaProperties([panel2], [panel1, panel3]);
 				});
 			},
 			"Show() Invisible Accordion": function () {
@@ -140,6 +176,7 @@ define([
 				return accordion.show(panel3).then(function () {
 					checkUniqueOpenPanel(accordion, panel3, "Only panel3 should be open");
 					accordion.style.display = "";
+					checkAriaProperties([panel3], [panel1, panel2]);
 				});
 			},
 			"Show() Invisible Parent": function () {
@@ -147,6 +184,7 @@ define([
 				return accordion.show(panel1).then(function () {
 					checkUniqueOpenPanel(accordion, panel1, "Only panel1 should be open");
 					accordion.parentNode.style.display = "";
+					checkAriaProperties([panel1], [panel2, panel3]);
 				});
 			}
 		},
@@ -159,6 +197,7 @@ define([
 			},
 			"Default open panel": function () {
 				checkPanelsStatus([panel21], [panel22, panel23], "Only panel1 should be open");
+				assert.strictEqual(accordion2.getAttribute("aria-multiselectable"), "true");
 			},
 			"Show(by id)": function () {
 				return accordion2.show("panel22").then(function () {

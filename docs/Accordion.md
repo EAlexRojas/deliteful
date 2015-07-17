@@ -145,8 +145,8 @@ When focus is on a panel's header, user can navigate between the different panel
 * `down/right arrow`: move focus to the next panel's header. If focus is on last panel's header, moves focus to first panel's header.
 * `home`: move focus to the first panel's header.
 * `end`: move focus to the last panel's header.
-* `Enter/Space`: if panel is closed, shows the content of the panel. (see [Showing a panel's content](showingPanel))
-   If panel is open, hides the content of the panel. (see [Hiding a panel's content](hidingPanel))
+* `Enter/Space`: if panel is closed, shows the content of the panel. (see [Showing a panel's content](#showingPanel)).
+   If panel is open, hides the content of the panel. (see [Hiding a panel's content](#hidingPanel))
 
 Note: On `singleOpen` mode, clicking, tapping or pressing the SPACE/Enter key on the button of the open panel, doesn't has any effect.
 Same thing on `multipleOpen` mode when there's only one open panel. In both case, in order to keep always at least one panel open.
@@ -155,6 +155,31 @@ Same thing on `multipleOpen` mode when there's only one open panel. In both case
 ## Element Events
 `deliteful/Accordion` support `delite` display events by inheriting from `delite/DisplayContainer`.
 For more informations, see [`delite/DisplayContainer`](/delite/docs/master/DisplayContainer.md) documentation.
+
+Note: When `show()` method is called an additional `delite-display-load` event is fired with as `dest` property the
+reference to the content to load on the specified panel.
+
+
+<a name="controller"></a>
+## Loading content for a Panel dynamically
+
+An application framework such as [dapp](https://github.com/ibm-js/dapp) can setup a controller to listen to events from
+`deliteful/Accordion` and provide alternate/customized features like loading the panel's content dynamically.
+
+In the following example the controller is listening to `delite-display-load` event in order to load a child
+defined in an external HTML file:
+
+```js
+require(["delite/register", "delite/Accordion", "dojo/request"/*, ...*/],
+  function (register, Accordion, request/*, ...*/) {
+  document.addEventListener("delite-display-load", function(event) {
+  });
+});
+```
+
+In order to notify `delite/DisplayContainer` that the controller is handling child loading, the controller must
+call the event's `setChild()` method, passing in either a value or a promise for the value.  The value is
+of the form `{child: HTMLElement}`.
 
 <a name="enterprise"></a>
 ## Enterprise Use
@@ -165,8 +190,7 @@ For more informations, see [`delite/DisplayContainer`](/delite/docs/master/Displ
 |----|------|-------|
 |Keyboard|ok|It is keyboard navigable (see [User Interactions](#interactions))|
 |Visual Formatting|||
-|Screen Reader|ok|based on WAI-ARIA Pattern for Accordion: http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#accordion|
-||| Tested with JAWS and VoiceOver|
+|Screen Reader|ok|based on WAI-ARIA Pattern for Accordion: http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#accordion. Tested with JAWS and VoiceOver|
 
 ### Globalization
 

@@ -11,11 +11,7 @@ define(["dcl/dcl",
 ], function (dcl, has, Promise, register, KeyNav, $, DisplayContainer, ToggleButton) {
 
 	function setVisibility(node, val) {
-		if (val) {
-			node.style.display = "";
-		} else {
-			node.style.display = "none";
-		}
+		node.style.display = val ? "" : "none";
 	}
 
 	var animationEndEvent = (function () {
@@ -34,11 +30,10 @@ define(["dcl/dcl",
 		return null;
 	})();
 
-	function listenAnimationEndEvent(element, callback) {
+	function listenAnimationEndEvent(element) {
 		if (animationEndEvent) {
 			return new Promise(function (resolve) {
 				var handler = element.on(animationEndEvent, function () {
-					callback(element);
 					handler.remove();
 					resolve();
 				});
@@ -78,7 +73,7 @@ define(["dcl/dcl",
 		 * @member {string}
 		 * @default ""
 		 */
-		selectedChildId : "",
+		selectedChildId: "",
 
 		/**
 		 * If true, only one panel is open at a time.
@@ -101,7 +96,7 @@ define(["dcl/dcl",
 		 * @member {string}
 		 * @default ""
 		 */
-		openIconClass : "",
+		openIconClass: "",
 
 		/**
 		 * The default CSS class to apply to DOMNode in children headers to make them display an icon when they are
@@ -109,7 +104,7 @@ define(["dcl/dcl",
 		 * @member {string}
 		 * @default ""
 		 */
-		closedIconClass : "",
+		closedIconClass: "",
 
 		_panelList: [],
 
@@ -266,7 +261,7 @@ define(["dcl/dcl",
 
 			//Flexbox animation is not supported on IE
 			//TODO: Create a feature test for flexbox animation
-			return visible && (!has("ie"));
+			return (!!animationEndEvent && visible && (!has("ie")));
 		},
 
 		_doTransition: function (panel, params) {
@@ -278,11 +273,11 @@ define(["dcl/dcl",
 					$(panel).addClass("d-accordion-closeAnimation").removeClass("d-accordion-open-panel");
 					$(panel.containerNode).removeClass("d-panel-content-open");
 					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
-					promise = listenAnimationEndEvent(panel, function (element) {
-						setVisibility(element.containerNode, element.open);
-						$(element).removeClass("d-accordion-closeAnimation");
-						element.containerNode.style.overflow = "";
-						element.style.minHeight = "";
+					promise = listenAnimationEndEvent(panel).then(function () {
+						setVisibility(panel.containerNode, panel.open);
+						$(panel).removeClass("d-accordion-closeAnimation");
+						panel.containerNode.style.overflow = "";
+						panel.style.minHeight = "";
 					});
 				} else {
 					$(panel).removeClass("d-accordion-open-panel");
@@ -297,12 +292,12 @@ define(["dcl/dcl",
 					$(panel.containerNode).addClass("d-panel-content-open");
 					setVisibility(panel.containerNode, true);
 					panel.containerNode.style.overflow = "hidden"; //To avoid scrollBar on animation
-					promise = listenAnimationEndEvent(panel, function (element) {
-						$(element).addClass(function () {
-							return element.open ? "d-accordion-open-panel" : "";
+					promise = listenAnimationEndEvent(panel).then(function () {
+						$(panel).addClass(function () {
+							return panel.open ? "d-accordion-open-panel" : "";
 						}).removeClass("d-accordion-openAnimation");
-						element.containerNode.style.overflow = "";
-						element.style.minHeight = "";
+						panel.containerNode.style.overflow = "";
+						panel.style.minHeight = "";
 					});
 				} else {
 					$(panel).addClass("d-accordion-open-panel");
@@ -357,28 +352,44 @@ define(["dcl/dcl",
 			return Promise.all(promises);
 		},
 
+		/**
+		 * This method must be called to hide the content of a particular child Panel on this container.
+		 * @method module:deliteful/Accordion#hide
+		 * @param {Element|string} dest - Element or Element id that points to the Panel whose content must be hidden
+		 * @returns {Promise} A promise that will be resolved when the display and transition effect will have
+		 * been performed.
+		 */
+
+		/**
+		 * This method must be called to display the content of a particular child Panel on this container.
+		 * The parameter 'params' is optional and only used to specify the content to load on the panel specified.
+		 * loadChild() is used to do this, so a controller could load/create the content by listening the
+		 * `delite-display-load` event.
+		 * @method
+		 * @param {Element|string} dest - Element or Element id that points to the Panel whose content must be shown
+		 * @param {Object} [params] - A hash like {contentId: "newContentId"}. The 'contentId' is the id of the element
+		 * to load as content of the Panel.
+		 * @returns {Promise} A promise that will be resolved when the display and transition effect will have
+		 * been performed.
+		 */
 		show: dcl.superCall(function (sup) {
 			return function (dest, params) {
-				//Case when the panel's content is loaded dynamically
-				if (params && params.contentId) {
-					var child = this.loadChild(params.contentId);
-					var self = this;
-					return Promise.resolve(child).then(function (value) {
-						var panel = typeof dest === "string" ? this.ownerDocument.getElementById(dest) : dest;
-						// if view is not the panel's containerNode this means we loaded a new view, replace it
-						if (panel.containerNode !== value.child) {
-							var oldContainerNode = panel.containerNode;
-							panel.containerNode = panel;
-							panel.removeChild(oldContainerNode);
-							panel.addChild(value.child);
-							panel.containerNode = value.child;
-							$(panel.containerNode).addClass("d-panel-content");
-						}
-						return sup.apply(self, [dest, params]);
-					});
-				} else {
-					return sup.apply(this, [dest, params]);
-				}
+				var panel = typeof dest === "string" ? this.ownerDocument.getElementById(dest) : dest;
+				var child = this.loadChild((params && params.contentId) ? params.contentId : panel.containerNode);
+				var self = this;
+				return Promise.resolve(child).then(function (value) {
+					// if view is not the panel's containerNode this means we loaded a new view, replace it
+					if (panel.containerNode !== value.child) {
+						//The replaced node could be recover by listening the `delite-remove-child` event of the panel
+						var oldContainerNode = panel.containerNode;
+						panel.containerNode = panel;
+						panel.removeChild(oldContainerNode);
+						panel.addChild(value.child);
+						panel.containerNode = value.child;
+						$(panel.containerNode).addClass("d-panel-content");
+					}
+					return sup.apply(self, [dest, params]);
+				});
 			};
 		}),
 

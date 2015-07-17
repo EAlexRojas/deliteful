@@ -50,6 +50,7 @@ define(["dcl/dcl",
 		 * @default ""
 		 */
 		closedIconClass: "",
+
 		template: template,
 
 		postRender: function () {
