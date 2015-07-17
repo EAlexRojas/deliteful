@@ -354,8 +354,11 @@ define(["dcl/dcl",
 
 		/**
 		 * This method must be called to hide the content of a particular child Panel on this container.
+		 * The parameter 'params' is optional and only used to specify the content to load on the panel specified.
 		 * @method module:deliteful/Accordion#hide
 		 * @param {Element|string} dest - Element or Element id that points to the Panel whose content must be hidden
+		 * @param {Object} [params] - A hash like {contentId: "newContentId"}. The 'contentId' is the id of the element
+		 * to load as content of the Panel.
 		 * @returns {Promise} A promise that will be resolved when the display and transition effect will have
 		 * been performed.
 		 */
@@ -365,31 +368,25 @@ define(["dcl/dcl",
 		 * The parameter 'params' is optional and only used to specify the content to load on the panel specified.
 		 * loadChild() is used to do this, so a controller could load/create the content by listening the
 		 * `delite-display-load` event.
-		 * @method
+		 * @method module:deliteful/Accordion#show
 		 * @param {Element|string} dest - Element or Element id that points to the Panel whose content must be shown
 		 * @param {Object} [params] - A hash like {contentId: "newContentId"}. The 'contentId' is the id of the element
 		 * to load as content of the Panel.
 		 * @returns {Promise} A promise that will be resolved when the display and transition effect will have
 		 * been performed.
 		 */
-		show: dcl.superCall(function (sup) {
+
+		loadChild: dcl.superCall(function (sup) {
 			return function (dest, params) {
-				var panel = typeof dest === "string" ? this.ownerDocument.getElementById(dest) : dest;
-				var child = this.loadChild((params && params.contentId) ? params.contentId : panel.containerNode);
-				var self = this;
-				return Promise.resolve(child).then(function (value) {
-					// if view is not the panel's containerNode this means we loaded a new view, replace it
-					if (panel.containerNode !== value.child) {
-						//The replaced node could be recover by listening the `delite-remove-child` event of the panel
-						var oldContainerNode = panel.containerNode;
-						panel.containerNode = panel;
-						panel.removeChild(oldContainerNode);
-						panel.addChild(value.child);
-						panel.containerNode = value.child;
+				var event = {
+					setContent: function (panel, content) {
+						panel.replaceChild(content, panel.containerNode);
+						panel.containerNode = content;
 						$(panel.containerNode).addClass("d-panel-content");
 					}
-					return sup.apply(self, [dest, params]);
-				});
+				};
+				dcl.mix(event, params);
+				return sup.apply(this, [dest, event]);
 			};
 		}),
 

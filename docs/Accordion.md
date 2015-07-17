@@ -161,25 +161,73 @@ reference to the content to load on the specified panel.
 
 
 <a name="controller"></a>
-## Loading content for a Panel dynamically
+## Writing a Controller for Accordion
 
 An application framework such as [dapp](https://github.com/ibm-js/dapp) can setup a controller to listen to events from
-`deliteful/Accordion` and provide alternate/customized features like loading the panel's content dynamically.
+`deliteful/Accordion` and provide alternate/customized features.
 
-In the following example the controller is listening to `delite-display-load` event in order to load a child
-defined in an external HTML file:
+In the following example the controller is listening to `delite-display-load` event in order to create a panel
+loading the content on demand:
 
 ```js
-require(["delite/register", "delite/Accordion", "dojo/request"/*, ...*/],
-  function (register, Accordion, request/*, ...*/) {
-  document.addEventListener("delite-display-load", function(event) {
-  });
-});
+	document.addEventListener("delite-display-load", function (evt) {
+		// Verify if the panel already exists
+		var panel = typeof event.dest === "string" ? document.getElementById(event.dest) : event.dest
+		if (!panel) {
+			evt.setChild(new Promise(function (resolve, reject) {
+				// load the data for the specified id, then create a panel with that data
+				loadData(evt.contentId).then(function (data) {
+					var child = new Panel({label: evt.dest, id: evt.dest});
+					evt.setContent(child, data);
+					resolve({child: child});
+				});
+			}));
+		}
+	});
 ```
 
-In order to notify `delite/DisplayContainer` that the controller is handling child loading, the controller must
+In order to notify `delite/Accordion` that the controller is handling child loading, the controller must
 call the event's `setChild()` method, passing in either a value or a promise for the value.  The value is
 of the form `{child: HTMLElement}`.
+The event also provides the method `setContent()` that must be used to specify the content for the panel.
+It's important to note that `evt.dest` make reference to the Panel id and `evt.contentId` to the content id.
+
+The user would have access to this through the `show()` and `hide()` methods. e.g; `show("p1", {contentId: newContent})`.
+The example could be changed to load new content even if the panel already exists. See samples/Accordion-controller.
+
+
+Another interesting behaviour that can be achieved by using a controller is creating empty panels and loading their content
+only when the panel be opened. In the following example there's a way to achieve that:
+
+HTML:
+
+```html
+	<d-accordion id="accordion">
+		<d-panel id="p1" label="Panel1">
+		</d-panel>
+		<d-panel id="p2" label="Panel2">
+		</d-panel>
+	</d-accordion>
+```
+
+JS:
+
+```js
+	document.addEventListener("delite-display-load", function (evt) {
+		// find the panel using its id
+		var panel = typeof event.dest === "string" ? document.getElementById(event.dest) : event.dest
+		// verify if the panel is empty
+		if (panel && isEmpty(panel)) {
+			evt.setChild(new Promise(function (resolve, reject) {
+				// load the content for the specified id, then set that data to the panel
+				loadContent(evt.dest).then(function (content) {
+					evt.setContent(panel, content);
+					resolve({child: panel});
+				});
+			}));
+		}
+	});
+```
 
 <a name="enterprise"></a>
 ## Enterprise Use
