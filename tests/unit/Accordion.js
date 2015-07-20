@@ -3,14 +3,15 @@ define([
 	"intern!object",
 	"intern/chai!assert",
 	"requirejs-dplugins/jquery!attributes/classes",
+	"requirejs-dplugins/Promise!",
 	"delite/register",
 	"decor/sniff",
 	"deliteful/Accordion",
 	"deliteful/Panel",
 	"dojo/domReady!"
-], function (dcl, registerSuite, assert, $, register, has, Accordion, Panel) {
+], function (dcl, registerSuite, assert, $, Promise, register, has, Accordion, Panel) {
 	var container, accordion, panel1, panel2, panel3, accordion2, panel21, panel22, panel23,
-		accordion3, panel31, panel32, panel33,
+		accordion3, panel31, panel32, panel33, accordion4,
 		html = "<d-accordion id='accordion' style='height:400px'>" +
 					"<d-panel id='panel1' label='panel1'><div>Content1</div></d-panel>" +
 					"<d-panel id='panel2' label='panel2'><div>Content2</div></d-panel>" +
@@ -27,6 +28,10 @@ define([
 					"<d-panel id='panel33' label='panel33' iconClass='ic4' closedIconClass='ic5'>" +
 						"<div>Content33</div>" +
 					"</d-panel>" +
+				"</d-accordion>" +
+				"<d-accordion id='accordion4' style='height:400px'>" +
+					"<d-panel id='panel41' label='panel41'></d-panel>" +
+					"<d-panel id='panel42' label='panel42'></d-panel>" +
 				"</d-accordion>";
 
 	var asyncHandler;
@@ -40,7 +45,7 @@ define([
 						$(child).hasClass("d-accordion-open-panel")) ||
 					(child !== target && child.containerNode.style.display === "none" && !child.open &&
 						!child.headerNode.checked && !($(child).hasClass("d-accordion-open-panel"))))),
-			message);
+			message + " checking " + child.id);
 		});
 	}
 
@@ -91,6 +96,15 @@ define([
 		});
 	}
 
+	function loadData(id) {
+		return new Promise(function (resolve) {
+			var view = document.createElement("div");
+			view.innerHTML = "<h3>New Content</h3>";
+			view.setAttribute("id", id);
+			resolve(view);
+		});
+	}
+
 	var commonSuite = {
 		"Default CSS": function () {
 			accordion = document.getElementById("accordion");
@@ -116,15 +130,8 @@ define([
 				panel3 = document.getElementById("panel3");
 			},
 			"Default open panel": function () {
-				if (has("ie")) {
-					checkUniqueOpenPanel(accordion, panel1, "Only panel1 should be open");
-				} else {
-					var d = this.async(1000);
-					asyncHandler = accordion.on("delite-after-show", d.callback(function () {
-						checkUniqueOpenPanel(accordion, panel1, "Only panel1 should be open");
-						checkAriaProperties([panel1], [panel2, panel3]);
-					}));
-				}
+				checkUniqueOpenPanel(accordion, panel1, "Only panel1 should be open");
+				checkAriaProperties([panel1], [panel2, panel3]);
 			},
 			"Show(by id)": function () {
 				return accordion.show("panel3").then(function () {
@@ -157,18 +164,19 @@ define([
 				});
 			},
 			"Changing selectedChildId": function () {
-				asyncHandler = accordion.on("delite-after-show", function () {
+				var d = this.async(1000);
+				asyncHandler = accordion.on("delite-after-show", d.callback(function () {
 					checkUniqueOpenPanel(accordion, panel1, "Only panel1 should be open");
 					checkAriaProperties([panel1], [panel2, panel3]);
-				});
+				}));
 				accordion.selectedChildId = "panel1";
 			},
 			"Show() without animation": function () {
 				accordion.animate = false;
 				return accordion.show(panel2).then(function () {
 					checkUniqueOpenPanel(accordion, panel2, "Only panel2 should be open");
-					accordion.animate = true;
 					checkAriaProperties([panel2], [panel1, panel3]);
+					accordion.animate = true;
 				});
 			},
 			"Show() Invisible Accordion": function () {
@@ -336,6 +344,47 @@ define([
 			container.innerHTML = html;
 			register.deliver();
 		},
+		"Controller": {
+			setup: function () {
+				accordion4 = document.getElementById("accordion4");
+			},
+			"loadContentEmptyPanel": function () {
+				var handler;
+
+				accordion4.addEventListener("delite-display-load", handler = function (evt) {
+					if (!evt.hide) {
+						evt.setChild(new Promise(function (resolve) {
+							// load the content for the specified id, then set that data to the panel
+							loadData(evt.contentId).then(function (data) {
+								evt.setContent(evt.dest, data);
+								resolve({child: evt.dest});
+							});
+						}));
+					}
+				});
+
+				function testContent(content, panel) {
+					assert.strictEqual(content.style.display, "");
+					assert.strictEqual(content.parentNode, panel);
+				}
+
+				var panel41 = document.getElementById("panel41");
+				var panel42 = document.getElementById("panel42");
+
+				return accordion4.show(panel42, {contentId: "newContent1"}).then(function () {
+					var content = document.getElementById("newContent1");
+					checkUniqueOpenPanel(accordion4, panel42, "Only panel42 should be open");
+					testContent(content, panel42);
+				}).then(function () {
+					return accordion4.show(panel41, {contentId: "newContent2"});
+				}).then(function () {
+					var content = document.getElementById("newContent2");
+					checkUniqueOpenPanel(accordion4, panel41, "Only panel41 should be open");
+					testContent(content, panel41);
+					accordion4.removeEventListener("delite-display-load", handler);
+				});
+			}
+		},
 		teardown: function () {
 			container.parentNode.removeChild(container);
 		},
@@ -402,6 +451,55 @@ define([
 			p33.addChild(c33);
 			ac3.placeAt(container, "last");
 		},
+		"Controller": {
+			setup: function () {
+				accordion4 = new Accordion();
+				var p40 = new Panel();
+				accordion4.addChild(p40);
+				accordion4.style.height = "400px";
+				accordion4.placeAt(container);
+			},
+			"newPanelLoadContent": function () {
+				var handler;
+
+				accordion4.addEventListener("delite-display-load", handler = function (evt) {
+					if (!evt.hide) {
+						evt.setChild(new Promise(function (resolve) {
+							console.log("id: " + evt.dest);
+							// load the data for the specified id, then create a panel with that data
+							loadData(evt.contentId).then(function (data) {
+								var child = new Panel({label: evt.dest, id: evt.dest});
+								evt.setContent(child, data);
+								resolve({child: child});
+							});
+						}));
+					}
+				});
+
+				function testContent(content, panel) {
+					assert.strictEqual(content.style.display, "");
+					assert.strictEqual(content.parentNode, panel);
+					assert.strictEqual(panel.parentNode, accordion4);
+				}
+
+				return accordion4.show("panel41", {contentId: "newContent1"}).then(function () {
+					var panel = document.getElementById("panel41");
+					var content = document.getElementById("newContent1");
+					checkUniqueOpenPanel(accordion4, panel, "Only panel41 should be open");
+					testContent(content, panel);
+				}).then(function () {
+					return accordion4.show("panel42", {contentId: "newContent2"});
+				}).then(function () {
+					var panel = document.getElementById("panel42");
+					var content = document.getElementById("newContent2");
+					checkUniqueOpenPanel(accordion4, panel, "Only panel42 should be open");
+					testContent(content, panel);
+					accordion4.removeEventListener("delite-display-load", handler);
+				});
+
+			}
+		},
+
 		teardown: function () {
 			container.parentNode.removeChild(container);
 		},

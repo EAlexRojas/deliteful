@@ -172,7 +172,7 @@ loading the content on demand:
 ```js
 	document.addEventListener("delite-display-load", function (evt) {
 		// Verify if the panel already exists
-		var panel = typeof event.dest === "string" ? document.getElementById(event.dest) : event.dest
+		var panel = typeof evt.dest === "string" ? document.getElementById(evt.dest) : evt.dest
 		if (!panel) {
 			evt.setChild(new Promise(function (resolve, reject) {
 				// load the data for the specified id, then create a panel with that data
@@ -215,7 +215,7 @@ JS:
 ```js
 	document.addEventListener("delite-display-load", function (evt) {
 		// find the panel using its id
-		var panel = typeof event.dest === "string" ? document.getElementById(event.dest) : event.dest
+		var panel = typeof evt.dest === "string" ? document.getElementById(evt.dest) : evt.dest
 		// verify if the panel is empty
 		if (panel && isEmpty(panel)) {
 			evt.setChild(new Promise(function (resolve, reject) {
