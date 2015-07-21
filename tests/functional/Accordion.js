@@ -8,14 +8,9 @@ define(["intern",
 ], function (intern, registerSuite, pollUntil, keys, assert, require, all) {
 	var PAGE = "./Accordion.html";
 
-	function checkHasClass(classes, className) {
-		classes = classes.trim().split(/\s+/g);
-		return classes.indexOf(className) !== -1 ? true : null;
-	}
-
 	function checkHasNotClass(classes, className) {
 		classes = classes.trim().split(/\s+/g);
-		return classes.indexOf(className) === -1 ? true : null;
+		return classes.indexOf(className) === -1;
 	}
 
 	function checkPanelIsOpen(remote, panel, animation) {
@@ -44,11 +39,11 @@ define(["intern",
 			.then(function (displayed) {
 				assert.isTrue(displayed, "The content of this panel should be visible");
 			})
-			.sleep(animation ? 300 : 0) //Animation time
-			.getAttribute("class")
-			.then(function (classes) {
-				checkHasClass(classes, "d-accordion-open-panel");
-			})
+			.then(pollUntil(function (value) {
+				var classes = document.getElementById(value).getAttribute("class");
+				classes = classes.trim().split(/\s+/g);
+				return classes.indexOf("d-accordion-open-panel") !== -1 ? true : null;
+			}, [panel], intern.config.WAIT_TIMEOUT, intern.config.POLL_INTERVAL))
 			.end();
 	}
 
@@ -76,14 +71,12 @@ define(["intern",
 			.findByCssSelector(".d-panel-content")
 			.getAttribute("class")
 			.then(function (classes) {
-				assert.isTrue(checkHasNotClass(classes, "d-accordion-open-panel",
-					"The content of this panel should not be visible"));
+				assert.isTrue(checkHasNotClass(classes, "d-accordion-open-panel"),
+					"The content of this panel should not be visible");
 			})
-			.sleep(animation ? 300 : 0) //Animation time
-			.isDisplayed()
-			.then(function (displayed) {
-				assert.isFalse(displayed, "The content of this panel should not be visible");
-			})
+			.then(pollUntil(function (value) {
+				return document.getElementById(value).style.display === "none";
+			}, [panel], intern.config.WAIT_TIMEOUT, intern.config.POLL_INTERVAL))
 			.end();
 	}
 
@@ -168,81 +161,102 @@ define(["intern",
 					});
 			}
 		},
-		"Keyboard Support": function () {
-			var remote = this.remote;
-			if (remote.environmentType.brokenSendKeys || !remote.environmentType.nativeEvents) {
-				return this.skip("no keyboard support");
-			}
-			return remote
-				.execute("document.getElementById('panel1_button').focus();")
-				//Test open panel by using ENTER or SPACE
-				.pressKeys(keys.ENTER)
-				.then(function () {
-					var remotes = [];
-					remotes.push(checkPanelIsOpen(remote, "panel1", true));
-					remotes.push(checkPanelIsClosed(remote, "panel2", true));
-					remotes.push(checkPanelIsClosed(remote, "panel3", false));
-					return all(remotes);
-				})
-				.execute("document.getElementById('panel2_button').focus();")
-				.pressKeys(keys.SPACE)
-				.then(function () {
-					var remotes = [];
-					remotes.push(checkPanelIsClosed(remote, "panel1", true));
-					remotes.push(checkPanelIsOpen(remote, "panel2", true));
-					remotes.push(checkPanelIsClosed(remote, "panel3", false));
-					return all(remotes);
-				})
+		"Keyboard Support": {
+			"Open panel by using ENTER or SPACE key" : function () {
+				var remote = this.remote;
+				if (remote.environmentType.brokenSendKeys || !remote.environmentType.nativeEvents) {
+					return this.skip("no keyboard support");
+				}
+				return remote
+					.execute("document.getElementById('panel1_button').focus();")
+					.pressKeys(keys.ENTER)
+					.then(function () {
+						var remotes = [];
+						remotes.push(checkPanelIsOpen(remote, "panel1", true));
+						remotes.push(checkPanelIsClosed(remote, "panel2", true));
+						remotes.push(checkPanelIsClosed(remote, "panel3", false));
+						return all(remotes);
+					})
+					.execute("document.getElementById('panel2_button').focus();")
+					.pressKeys(keys.SPACE)
+					.then(function () {
+						var remotes = [];
+						remotes.push(checkPanelIsClosed(remote, "panel1", true));
+						remotes.push(checkPanelIsOpen(remote, "panel2", true));
+						remotes.push(checkPanelIsClosed(remote, "panel3", false));
+						return all(remotes);
+					});
+			},
+			"HOME and END keys": function () {
+				var remote = this.remote;
+				if (remote.environmentType.brokenSendKeys || !remote.environmentType.nativeEvents) {
+					return this.skip("no keyboard support");
+				}
+				return remote
 				//Change focus to first and last panel
-				.pressKeys(keys.HOME)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel1_button");
-				})
-				.pressKeys(keys.END)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel3_button");
-				})
-				//Moving between panels using arrow keys
-				.pressKeys(keys.ARROW_LEFT)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel2_button");
-				}).pressKeys(keys.ARROW_RIGHT)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel3_button");
-				})
-				.pressKeys(keys.ARROW_UP)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel2_button");
-				}).pressKeys(keys.ARROW_DOWN)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel3_button");
-				})
-				//From last to first and from first to last
-				.pressKeys(keys.ARROW_RIGHT)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel1_button");
-				}).pressKeys(keys.ARROW_LEFT)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel3_button");
-				})
-				.pressKeys(keys.ARROW_DOWN)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel1_button");
-				}).pressKeys(keys.ARROW_UP)
-				.execute("return document.activeElement.id;")
-				.then(function (value) {
-					assert.strictEqual(value, "panel3_button");
-				})
-				;
+					.pressKeys(keys.HOME)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel1_button");
+					})
+					.pressKeys(keys.END)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel3_button");
+					});
+			},
+			"Arrow keys": function () {
+				var remote = this.remote;
+				if (remote.environmentType.brokenSendKeys || !remote.environmentType.nativeEvents) {
+					return this.skip("no keyboard support");
+				}
+				return remote
+					//Moving between panels using arrow keys
+					.pressKeys(keys.ARROW_LEFT)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel2_button");
+					}).pressKeys(keys.ARROW_RIGHT)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel3_button");
+					})
+					.pressKeys(keys.ARROW_UP)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel2_button");
+					}).pressKeys(keys.ARROW_DOWN)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel3_button");
+					});
+			},
+			"Arrow keys - cyclic": function () {
+				var remote = this.remote;
+				if (remote.environmentType.brokenSendKeys || !remote.environmentType.nativeEvents) {
+					return this.skip("no keyboard support");
+				}
+				return remote
+					//From last to first and from first to last
+					.pressKeys(keys.ARROW_RIGHT)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel1_button");
+					}).pressKeys(keys.ARROW_LEFT)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel3_button");
+					})
+					.pressKeys(keys.ARROW_DOWN)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel1_button");
+					}).pressKeys(keys.ARROW_UP)
+					.execute("return document.activeElement.id;")
+					.then(function (value) {
+						assert.strictEqual(value, "panel3_button");
+					});
+			}
 		},
 		"MultipleOpen Mode": {
 			setup: function () {
