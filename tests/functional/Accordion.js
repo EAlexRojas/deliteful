@@ -1,10 +1,11 @@
 define(["intern",
 	"intern!object",
 	"intern/dojo/node!leadfoot/helpers/pollUntil",
+	"intern/dojo/node!leadfoot/keys",
 	"intern/chai!assert",
 	"require",
 	"dojo/promise/all"
-], function (intern, registerSuite, pollUntil, assert, require, all) {
+], function (intern, registerSuite, pollUntil, keys, assert, require, all) {
 	var PAGE = "./Accordion.html";
 
 	function checkHasClass(classes, className) {
@@ -167,8 +168,84 @@ define(["intern",
 					});
 			}
 		},
+		"Keyboard Support": function () {
+			var remote = this.remote;
+			if (remote.environmentType.brokenSendKeys || !remote.environmentType.nativeEvents) {
+				return this.skip("no keyboard support");
+			}
+			return remote
+				.execute("document.getElementById('panel1_button').focus();")
+				//Test open panel by using ENTER or SPACE
+				.pressKeys(keys.ENTER)
+				.then(function () {
+					var remotes = [];
+					remotes.push(checkPanelIsOpen(remote, "panel1", true));
+					remotes.push(checkPanelIsClosed(remote, "panel2", true));
+					remotes.push(checkPanelIsClosed(remote, "panel3", false));
+					return all(remotes);
+				})
+				.execute("document.getElementById('panel2_button').focus();")
+				.pressKeys(keys.SPACE)
+				.then(function () {
+					var remotes = [];
+					remotes.push(checkPanelIsClosed(remote, "panel1", true));
+					remotes.push(checkPanelIsOpen(remote, "panel2", true));
+					remotes.push(checkPanelIsClosed(remote, "panel3", false));
+					return all(remotes);
+				})
+				//Change focus to first and last panel
+				.pressKeys(keys.HOME)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel1_button");
+				})
+				.pressKeys(keys.END)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel3_button");
+				})
+				//Moving between panels using arrow keys
+				.pressKeys(keys.ARROW_LEFT)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel2_button");
+				}).pressKeys(keys.ARROW_RIGHT)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel3_button");
+				})
+				.pressKeys(keys.ARROW_UP)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel2_button");
+				}).pressKeys(keys.ARROW_DOWN)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel3_button");
+				})
+				//From last to first and from first to last
+				.pressKeys(keys.ARROW_RIGHT)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel1_button");
+				}).pressKeys(keys.ARROW_LEFT)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel3_button");
+				})
+				.pressKeys(keys.ARROW_DOWN)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel1_button");
+				}).pressKeys(keys.ARROW_UP)
+				.execute("return document.activeElement.id;")
+				.then(function (value) {
+					assert.strictEqual(value, "panel3_button");
+				})
+				;
+		},
 		"MultipleOpen Mode": {
-			"setup": function () {
+			setup: function () {
 				var remote = this.remote;
 				return remote
 					.execute("document.getElementById('accordion').style.display = 'none'")
