@@ -338,7 +338,6 @@ define(["intern",
 					.execute("return actionsHover;") // NOTE: a global variable existing in PAGE
 					.then(function (actions) {
 						var action = actions.expirable5000;
-						action.toaster.animationEnterClass = "";//To avoid timing problems
 						return remote
 							// click on show button
 							.findById(action.buttonId)
