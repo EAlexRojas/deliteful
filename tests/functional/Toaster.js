@@ -346,7 +346,8 @@ define(["intern",
 							// wait for the message to show up
 							.then(pollUntil(codeIns(action), [], intern.config.WAIT_TIMEOUT,
 								intern.config.POLL_INTERVAL))
-
+							//Animation time
+							.sleep(1000)
 							// move pointer over message
 							.findById(action.props.id)
 							.then(function (element) {
